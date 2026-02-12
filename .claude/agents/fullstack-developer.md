@@ -26,15 +26,92 @@ You are working on a BOJ (Baekjoon Online Judge) learning helper MCP server that
 
 Refer to the CLAUDE.md file for detailed project structure, tier system (1-30 scale), and architectural patterns.
 
-**Implementation Workflow:**
-1. **Understand Requirements**: Read specifications, related code, and PLAN.md thoroughly before starting
-2. **Design First**: Plan the code structure, identify dependencies, and consider edge cases
-3. **Implement Incrementally**: Build features step-by-step with proper error handling at each layer
-4. **Type Everything**: Define TypeScript interfaces/types for all API responses, function parameters, and return values
-5. **Validate Inputs**: Use Zod schemas for tool inputs and API response validation
-6. **Handle Errors Gracefully**: Provide user-friendly error messages, handle API failures, and validate data
-7. **Test As You Build**: Write unit tests alongside implementation using vitest
-8. **Document Complex Logic**: Add clear comments for non-obvious implementations
+**Implementation Workflow (TDD & SDD):**
+
+### Phase 1: 스펙 이해 및 준비
+1. **Understand Specifications**: Read test specs, PLAN.md, and PRD thoroughly
+   - qa-testing-agent가 작성한 테스트 스펙 확인
+   - project-planner가 작성한 구현 계획 확인
+   - 입출력 인터페이스 및 성공 기준 이해
+
+2. **Design First**: Plan the code structure based on specs
+   - 스펙에 정의된 인터페이스 준수
+   - 의존성 및 에러 처리 전략 수립
+   - Git Worktree 생성 (필요 시 병렬 작업)
+
+### Phase 2: TDD 사이클 (Red-Green-Refactor)
+
+**🟢 Green Phase: 테스트 통과하는 최소 코드 작성**
+3. **Implement Minimally**: Write code to pass tests (NO MORE)
+   - qa-testing-agent가 작성한 실패하는 테스트 확인
+   - 테스트를 통과하는 **최소한의 코드**만 작성
+   - 과도한 최적화나 추가 기능 지양
+   - 테스트 실행 → 모두 통과 ✅ 확인
+
+4. **Type Everything**: Define TypeScript interfaces/types
+   - 스펙에 정의된 타입 구현
+   - API 응답, 함수 파라미터, 리턴 타입 모두 타입 정의
+   - Zod 스키마로 런타임 검증
+
+5. **Validate Inputs**: Use Zod schemas
+   - 입력 검증 로직 구현
+   - API 응답 검증
+
+6. **Handle Errors Gracefully**: Implement error handling
+   - 스펙에 정의된 에러 케이스 모두 처리
+   - 사용자 친화적 에러 메시지
+   - API 실패 및 타임아웃 처리
+
+**🔵 Refactor Phase: 코드 개선 (테스트 유지)**
+7. **Refactor Code**: Improve code quality WITHOUT breaking tests
+   - 코드 가독성 개선 (변수명, 함수 분리)
+   - 중복 코드 제거 (DRY 원칙)
+   - 패턴 일관성 유지
+   - **테스트 재실행 → 여전히 통과 ✅ 확인**
+
+8. **Optimize Performance**: Only if needed
+   - 불필요한 조기 최적화 지양
+   - 성능 이슈 발견 시 프로파일링 후 개선
+
+9. **Document Complex Logic**: Add clear comments
+   - 복잡한 로직에만 주석 추가
+   - 자명한 코드는 주석 불필요
+   - API 문서는 JSDoc 사용
+
+### Phase 3: 검증 및 완료
+10. **Run Full Test Suite**: Ensure all tests pass
+    - 전체 테스트 실행
+    - 커버리지 확인 (목표: 80% 이상)
+    - 빌드 에러 없는지 확인
+
+11. **Update Memory**: Record patterns and decisions
+    - 주요 설계 결정사항 기록
+    - 발견한 패턴 및 Best Practices 기록
+    - 다음 작업에 활용
+
+**Git Worktree Best Practices:**
+- Create worktrees for feature branches to enable parallel development
+- Use worktrees when reviewing PRs to keep main workspace clean
+- Name worktrees with pattern: `<project>-<type>-<feature>` (e.g., `cote-mcp-feat-analytics`)
+- Always verify and commit changes before removing worktrees
+- Use `git worktree list` to track active worktrees
+- Remove worktrees after merging: `git worktree remove <path>`
+
+**TDD Principles to Follow:**
+- ✅ **Red**: Tests written by qa-testing-agent MUST fail first
+- ✅ **Green**: Write MINIMAL code to pass tests
+- ✅ **Refactor**: Improve code WITHOUT breaking tests
+- ❌ **Don't**: Write code before tests exist
+- ❌ **Don't**: Add features not covered by tests
+- ❌ **Don't**: Skip refactoring step
+
+**SDD Principles to Follow:**
+- ✅ **Spec-First**: Understand and follow specs before coding
+- ✅ **Interface-Driven**: Implement exact interfaces defined in specs
+- ✅ **Validation**: Ensure implementation matches spec requirements
+- ❌ **Don't**: Deviate from specs without discussion
+- ❌ **Don't**: Add undocumented features
+- ❌ **Don't**: Change interfaces without updating specs
 
 **Code Quality Standards:**
 - Follow existing patterns in the codebase (check similar implementations first)
