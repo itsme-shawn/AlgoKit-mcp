@@ -3,6 +3,7 @@
 **프로젝트**: BOJ 학습 도우미 MCP Server
 **마지막 업데이트**: 2026-02-13
 **현재 Phase**: Phase 1 - 기반 구축
+**현재 작업**: Task 1.2 (API 클라이언트) 및 Task 1.3 (티어 유틸리티) 병렬 구현 중
 
 ---
 
@@ -41,10 +42,11 @@
 ---
 
 ### Task 1.2: solved.ac API 클라이언트 구현
-**상태**: 📋 TODO
-**담당**: Developer
+**상태**: 🚧 IN_PROGRESS
+**담당**: fullstack-developer agent
 **우선순위**: P0 (최우선)
 **예상 소요**: 2-3일
+**시작일**: 2026-02-13
 
 **세부 태스크**:
 - [ ] HTTP 클라이언트 라이브러리 선택 (fetch 또는 axios)
@@ -83,10 +85,11 @@ interface SolvedAcClient {
 ---
 
 ### Task 1.3: 티어/레벨 유틸리티 구현
-**상태**: 📋 TODO
-**담당**: Developer
+**상태**: 🚧 IN_PROGRESS
+**담당**: fullstack-developer agent
 **우선순위**: P1
 **예상 소요**: 1일
+**시작일**: 2026-02-13
 
 **세부 태스크**:
 - [ ] `src/utils/tier-converter.ts` 생성
@@ -629,3 +632,19 @@ interface SolvedAcClient {
 - 각 태스크 완료 시 이 문서를 업데이트하세요
 - 블로킹 이슈 발생 시 즉시 기록하세요
 - 우선순위는 프로젝트 진행 상황에 따라 조정될 수 있습니다
+
+---
+
+## 참고 문서
+
+### Phase 1 상세 구현 계획서
+project-planner 에이전트가 작성한 상세 계획서 참조:
+- 파일별 구현 내용 및 코드 예시
+- 타입 정의 전략
+- API 엔드포인트 설계
+- 에러 처리 방식
+- 캐싱 전략
+- 테스트 계획
+- Day 1-10 구현 순서
+
+**문서 위치**: 대화 기록 참조 (agent ID: ae6bff6)
