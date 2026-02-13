@@ -4,6 +4,7 @@ import {
   tierToLevelRange,
   getTierBadge,
   isValidLevel,
+  parseTierString,
   TIER_NAMES,
 } from '../../src/utils/tier-converter.js';
 
@@ -281,6 +282,175 @@ describe('tier-converter', () => {
         // 이모지가 포함되어야 함
         expect(badge.length).toBeGreaterThan(tierName.length);
       }
+    });
+  });
+
+  describe('parseTierString()', () => {
+    describe('정상 변환 - 한글 티어명 + 아라비아 숫자', () => {
+      it('should parse "실버 3" to level 8', () => {
+        expect(parseTierString('실버 3')).toBe(8);
+      });
+
+      it('should parse "골드 1" to level 15', () => {
+        expect(parseTierString('골드 1')).toBe(15);
+      });
+
+      it('should parse "브론즈 5" to level 1', () => {
+        expect(parseTierString('브론즈 5')).toBe(1);
+      });
+
+      it('should parse "플래티넘 2" to level 19', () => {
+        expect(parseTierString('플래티넘 2')).toBe(19);
+      });
+
+      it('should parse "다이아몬드 4" to level 22', () => {
+        expect(parseTierString('다이아몬드 4')).toBe(22);
+      });
+
+      it('should parse "루비 1" to level 30', () => {
+        expect(parseTierString('루비 1')).toBe(30);
+      });
+    });
+
+    describe('정상 변환 - 영문 티어명 + 로마 숫자', () => {
+      it('should parse "Silver III" to level 8', () => {
+        expect(parseTierString('Silver III')).toBe(8);
+      });
+
+      it('should parse "Gold I" to level 15', () => {
+        expect(parseTierString('Gold I')).toBe(15);
+      });
+
+      it('should parse "Bronze V" to level 1', () => {
+        expect(parseTierString('Bronze V')).toBe(1);
+      });
+
+      it('should parse "Platinum II" to level 19', () => {
+        expect(parseTierString('Platinum II')).toBe(19);
+      });
+
+      it('should parse "Diamond IV" to level 22', () => {
+        expect(parseTierString('Diamond IV')).toBe(22);
+      });
+
+      it('should parse "Ruby I" to level 30', () => {
+        expect(parseTierString('Ruby I')).toBe(30);
+      });
+    });
+
+    describe('대소문자 무관 처리', () => {
+      it('should parse "silver iii" to level 8', () => {
+        expect(parseTierString('silver iii')).toBe(8);
+      });
+
+      it('should parse "GOLD I" to level 15', () => {
+        expect(parseTierString('GOLD I')).toBe(15);
+      });
+
+      it('should parse "GoLd iI" to level 14', () => {
+        expect(parseTierString('GoLd iI')).toBe(14);
+      });
+    });
+
+    describe('축약형 티어명 지원', () => {
+      it('should parse "실 3" to level 8', () => {
+        expect(parseTierString('실 3')).toBe(8);
+      });
+
+      it('should parse "골 1" to level 15', () => {
+        expect(parseTierString('골 1')).toBe(15);
+      });
+
+      it('should parse "브 5" to level 1', () => {
+        expect(parseTierString('브 5')).toBe(1);
+      });
+
+      it('should parse "플 2" to level 19', () => {
+        expect(parseTierString('플 2')).toBe(19);
+      });
+
+      it('should parse "다 4" to level 22', () => {
+        expect(parseTierString('다 4')).toBe(22);
+      });
+
+      it('should parse "루 1" to level 30', () => {
+        expect(parseTierString('루 1')).toBe(30);
+      });
+    });
+
+    describe('공백 및 하이픈 처리', () => {
+      it('should parse "실버  3" (double space) to level 8', () => {
+        expect(parseTierString('실버  3')).toBe(8);
+      });
+
+      it('should parse "Gold-I" (hyphen) to level 15', () => {
+        expect(parseTierString('Gold-I')).toBe(15);
+      });
+
+      it('should parse " 실버 3 " (leading/trailing spaces) to level 8', () => {
+        expect(parseTierString(' 실버 3 ')).toBe(8);
+      });
+    });
+
+    describe('에러 케이스 - 유효하지 않은 티어 이름', () => {
+      it('should throw error for "마스터 1"', () => {
+        expect(() => parseTierString('마스터 1')).toThrow('유효하지 않은 티어 이름');
+      });
+
+      it('should throw error for "Unknown V"', () => {
+        expect(() => parseTierString('Unknown V')).toThrow('유효하지 않은 티어 이름');
+      });
+    });
+
+    describe('에러 케이스 - 유효하지 않은 등급', () => {
+      it('should throw error for "실버 0"', () => {
+        expect(() => parseTierString('실버 0')).toThrow('유효하지 않은 등급');
+      });
+
+      it('should throw error for "Gold 6"', () => {
+        expect(() => parseTierString('Gold 6')).toThrow('유효하지 않은 등급');
+      });
+
+      it('should throw error for "실버 X"', () => {
+        expect(() => parseTierString('실버 X')).toThrow('유효하지 않은 등급');
+      });
+    });
+
+    describe('에러 케이스 - 잘못된 형식', () => {
+      it('should throw error for "실버"', () => {
+        expect(() => parseTierString('실버')).toThrow('티어 형식이 올바르지 않습니다');
+      });
+
+      it('should throw error for "실버 3 1"', () => {
+        expect(() => parseTierString('실버 3 1')).toThrow('티어 형식이 올바르지 않습니다');
+      });
+
+      it('should throw error for empty string', () => {
+        expect(() => parseTierString('')).toThrow('티어 문자열은 비어있을 수 없습니다');
+      });
+
+      it('should throw error for whitespace only', () => {
+        expect(() => parseTierString('   ')).toThrow('티어 문자열은 비어있을 수 없습니다');
+      });
+    });
+
+    describe('양방향 변환 일관성', () => {
+      it('should maintain consistency: parseTierString -> levelToTier', () => {
+        const testCases = [
+          { input: '실버 3', expectedLevel: 8, expectedTier: 'Silver III' },
+          { input: 'Gold I', expectedLevel: 15, expectedTier: 'Gold I' },
+          { input: '브론즈 5', expectedLevel: 1, expectedTier: 'Bronze V' },
+          { input: 'Ruby 1', expectedLevel: 30, expectedTier: 'Ruby I' },
+        ];
+
+        for (const { input, expectedLevel, expectedTier } of testCases) {
+          const level = parseTierString(input);
+          expect(level).toBe(expectedLevel);
+
+          const tier = levelToTier(level);
+          expect(tier).toBe(expectedTier);
+        }
+      });
     });
   });
 

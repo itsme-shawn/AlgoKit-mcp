@@ -7,50 +7,128 @@ import { searchProblems, SearchProblemsInputSchema } from '../../src/tools/searc
 
 describe('search_problems 도구', () => {
   describe('입력 스키마 검증', () => {
-    it('유효한 입력을 통과시켜야 함', () => {
-      const validInput = {
-        query: 'DP',
-        level_min: 11,
-        level_max: 15,
-        page: 1,
-      };
+    describe('숫자 형식 레벨 입력', () => {
+      it('유효한 입력을 통과시켜야 함', () => {
+        const validInput = {
+          query: 'DP',
+          level_min: 11,
+          level_max: 15,
+          page: 1,
+        };
 
-      const result = SearchProblemsInputSchema.safeParse(validInput);
-      expect(result.success).toBe(true);
+        const result = SearchProblemsInputSchema.safeParse(validInput);
+        expect(result.success).toBe(true);
+      });
+
+      it('선택적 필드 없이도 통과해야 함', () => {
+        const minimalInput = {};
+
+        const result = SearchProblemsInputSchema.safeParse(minimalInput);
+        expect(result.success).toBe(true);
+      });
+
+      it('level_min이 1-30 범위를 벗어나면 실패해야 함', () => {
+        const invalidInput = {
+          level_min: 0,
+        };
+
+        const result = SearchProblemsInputSchema.safeParse(invalidInput);
+        expect(result.success).toBe(false);
+      });
+
+      it('level_max가 1-30 범위를 벗어나면 실패해야 함', () => {
+        const invalidInput = {
+          level_max: 31,
+        };
+
+        const result = SearchProblemsInputSchema.safeParse(invalidInput);
+        expect(result.success).toBe(false);
+      });
+
+      it('page가 음수이면 실패해야 함', () => {
+        const invalidInput = {
+          page: -1,
+        };
+
+        const result = SearchProblemsInputSchema.safeParse(invalidInput);
+        expect(result.success).toBe(false);
+      });
     });
 
-    it('선택적 필드 없이도 통과해야 함', () => {
-      const minimalInput = {};
+    describe('티어 문자열 형식 입력', () => {
+      it('한글 티어명 + 숫자 형식을 통과시켜야 함', () => {
+        const validInput = {
+          level_min: '실버 3',
+          level_max: '골드 1',
+        };
 
-      const result = SearchProblemsInputSchema.safeParse(minimalInput);
-      expect(result.success).toBe(true);
-    });
+        const result = SearchProblemsInputSchema.safeParse(validInput);
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data.level_min).toBe(8);
+          expect(result.data.level_max).toBe(15);
+        }
+      });
 
-    it('level_min이 1-30 범위를 벗어나면 실패해야 함', () => {
-      const invalidInput = {
-        level_min: 0,
-      };
+      it('영문 티어명 + 로마 숫자 형식을 통과시켜야 함', () => {
+        const validInput = {
+          level_min: 'Silver III',
+          level_max: 'Gold I',
+        };
 
-      const result = SearchProblemsInputSchema.safeParse(invalidInput);
-      expect(result.success).toBe(false);
-    });
+        const result = SearchProblemsInputSchema.safeParse(validInput);
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data.level_min).toBe(8);
+          expect(result.data.level_max).toBe(15);
+        }
+      });
 
-    it('level_max가 1-30 범위를 벗어나면 실패해야 함', () => {
-      const invalidInput = {
-        level_max: 31,
-      };
+      it('축약형 티어명을 통과시켜야 함', () => {
+        const validInput = {
+          level_min: '실 3',
+          level_max: '골 1',
+        };
 
-      const result = SearchProblemsInputSchema.safeParse(invalidInput);
-      expect(result.success).toBe(false);
-    });
+        const result = SearchProblemsInputSchema.safeParse(validInput);
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data.level_min).toBe(8);
+          expect(result.data.level_max).toBe(15);
+        }
+      });
 
-    it('page가 음수이면 실패해야 함', () => {
-      const invalidInput = {
-        page: -1,
-      };
+      it('유효하지 않은 티어 문자열은 실패해야 함', () => {
+        const invalidInput = {
+          level_min: '마스터 1',
+        };
 
-      const result = SearchProblemsInputSchema.safeParse(invalidInput);
-      expect(result.success).toBe(false);
+        const result = SearchProblemsInputSchema.safeParse(invalidInput);
+        expect(result.success).toBe(false);
+      });
+
+      it('잘못된 형식은 실패해야 함', () => {
+        const invalidInput = {
+          level_min: '실버',
+        };
+
+        const result = SearchProblemsInputSchema.safeParse(invalidInput);
+        expect(result.success).toBe(false);
+      });
+
+      it('숫자와 문자열 혼용 가능해야 함', () => {
+        const mixedInput = {
+          level_min: 10,
+          level_max: '골드 1',
+        };
+
+        const result = SearchProblemsInputSchema.safeParse(mixedInput);
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data.level_min).toBe(10);
+          expect(result.data.level_max).toBe(15);
+        }
+      });
     });
   });
 

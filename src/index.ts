@@ -26,6 +26,30 @@ import {
   searchTags,
   SearchTagsInputSchema,
 } from './tools/search-tags.js';
+import {
+  analyzeProblemTool,
+  AnalyzeProblemInputSchema,
+} from './tools/analyze-problem.js';
+import {
+  generateReviewTemplateTool,
+  GenerateReviewTemplateInputSchema,
+} from './tools/generate-review-template.js';
+
+// 서비스 임포트
+import { SolvedAcClient } from './api/solvedac-client.js';
+import { ProblemAnalyzer } from './services/problem-analyzer.js';
+import { ReviewTemplateGenerator } from './services/review-template-generator.js';
+
+/**
+ * 서비스 초기화
+ */
+const apiClient = new SolvedAcClient();
+const problemAnalyzer = new ProblemAnalyzer(apiClient);
+const reviewTemplateGenerator = new ReviewTemplateGenerator(apiClient, problemAnalyzer);
+
+// 도구 객체 생성
+const analyzeProblemToolObj = analyzeProblemTool(problemAnalyzer);
+const generateReviewTemplateToolObj = generateReviewTemplateTool(reviewTemplateGenerator);
 
 /**
  * MCP 서버 초기화
@@ -67,6 +91,20 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           '알고리즘 태그를 검색합니다. 한글 또는 영문 키워드로 관련 태그를 찾을 수 있습니다. ' +
           '예: "다이나믹", "그래프", "이분 탐색" 등',
         inputSchema: zodToJsonSchema(SearchTagsInputSchema as any) as any,
+      },
+      {
+        name: 'analyze_problem',
+        description:
+          'BOJ 문제를 분석하고 구조화된 힌트 데이터를 제공합니다. ' +
+          '3단계 힌트 포인트, 난이도 컨텍스트, 알고리즘 정보, 유사 문제 추천을 포함합니다.',
+        inputSchema: zodToJsonSchema(AnalyzeProblemInputSchema as any) as any,
+      },
+      {
+        name: 'generate_review_template',
+        description:
+          'BOJ 문제 복습을 위한 마크다운 템플릿과 가이드 프롬프트를 생성합니다. ' +
+          '템플릿을 기반으로 대화형으로 복습 문서를 작성할 수 있습니다.',
+        inputSchema: zodToJsonSchema(GenerateReviewTemplateInputSchema as any) as any,
       },
       {
         name: 'health_check',
@@ -127,6 +165,22 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
+      case 'analyze_problem': {
+        const input = AnalyzeProblemInputSchema.parse(args);
+        const result = await analyzeProblemToolObj.handler(input);
+        return {
+          content: [result],
+        };
+      }
+
+      case 'generate_review_template': {
+        const input = GenerateReviewTemplateInputSchema.parse(args);
+        const result = await generateReviewTemplateToolObj.handler(input);
+        return {
+          content: [result],
+        };
+      }
+
       case 'health_check': {
         return {
           content: [
@@ -138,7 +192,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                   timestamp: new Date().toISOString(),
                   server: 'cote-mcp-server',
                   version: '1.0.0',
-                  tools: ['search_problems', 'get_problem', 'search_tags', 'health_check'],
+                  tools: [
+                    'search_problems',
+                    'get_problem',
+                    'search_tags',
+                    'analyze_problem',
+                    'generate_review_template',
+                    'health_check'
+                  ],
                 },
                 null,
                 2

@@ -7,15 +7,49 @@
 import { z } from 'zod';
 import { SolvedAcClient } from '../api/solvedac-client.js';
 import { SearchParams } from '../api/types.js';
-import { getTierBadge, levelToTier } from '../utils/tier-converter.js';
+import { getTierBadge, levelToTier, parseTierString } from '../utils/tier-converter.js';
 
 /**
  * 입력 스키마
+ *
+ * level_min/level_max는 숫자(1-30) 또는 티어 문자열(예: "실버 3", "Gold I") 모두 지원
  */
 export const SearchProblemsInputSchema = z.object({
   query: z.string().optional().describe('검색 키워드 (제목, 번호, 태그 등)'),
-  level_min: z.number().int().min(1).max(30).optional().describe('최소 난이도 레벨 (1-30)'),
-  level_max: z.number().int().min(1).max(30).optional().describe('최대 난이도 레벨 (1-30)'),
+  level_min: z
+    .union([
+      z.number().int().min(1).max(30),
+      z.string().transform((val, ctx) => {
+        try {
+          return parseTierString(val);
+        } catch (error) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: error instanceof Error ? error.message : '티어 파싱 실패',
+          });
+          return z.NEVER;
+        }
+      }),
+    ])
+    .optional()
+    .describe('최소 난이도 (숫자 1-30 또는 "실버 3", "Gold I" 형식)'),
+  level_max: z
+    .union([
+      z.number().int().min(1).max(30),
+      z.string().transform((val, ctx) => {
+        try {
+          return parseTierString(val);
+        } catch (error) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: error instanceof Error ? error.message : '티어 파싱 실패',
+          });
+          return z.NEVER;
+        }
+      }),
+    ])
+    .optional()
+    .describe('최대 난이도 (숫자 1-30 또는 "실버 3", "Gold I" 형식)'),
   tag: z.string().optional().describe('알고리즘 태그 (예: "dp", "greedy")'),
   sort: z.enum(['level', 'id', 'average_try']).optional().describe('정렬 기준'),
   direction: z.enum(['asc', 'desc']).optional().describe('정렬 방향'),
