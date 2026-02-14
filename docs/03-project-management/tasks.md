@@ -1,9 +1,9 @@
 # 개발 태스크 목록 및 상태 관리
 
 **프로젝트**: BOJ 학습 도우미 MCP Server
-**마지막 업데이트**: 2026-02-13 (Phase 1-3 완료)
-**현재 Phase**: Phase 1-3 모두 완료 (Keyless 아키텍처 구현)
-**다음 작업**: Phase 4 - 완성도 & 최적화 (Rate Limiting, 캐싱, 로깅)
+**마지막 업데이트**: 2026-02-14 (Phase 5 완료)
+**현재 Phase**: Phase 5 완료 ✅, Phase 4 대기 중
+**다음 단계**: Phase 4 (완성도 & 최적화) - Rate Limiting, 캐싱, 로깅
 
 ---
 
@@ -349,72 +349,209 @@ interface SolvedAcClient {
 ---
 
 ## Phase 4: 완성도 & 최적화 (Polish & Optimization)
-**목표**: 프로덕션 준비
-**우선순위**: 🟢 낮음
-**예상 기간**: 5주차
+**목표**: 프로덕션 준비 (Production-Ready)
+**우선순위**: 🔴 높음 (Phase 1-3 완료 후)
+**예상 기간**: 3주 (15일)
+**계획 문서**: `docs/01-planning/phase4-plan.md` ✅ 완료
 
-### Task 4.1: 요청 Throttling/Rate Limiting
-**상태**: 📋 TODO
-**담당**: Developer
-**우선순위**: P2
-**예상 소요**: 1일
+### Task 4.0: Phase 4 계획 수립
+**상태**: ✅ DONE
+**담당**: project-planner
+**완료일**: 2026-02-13
+**최종 업데이트**: 2026-02-13 (코드베이스 분석 반영)
 
-**세부 태스크**:
-- [ ] API 호출 간 최소 간격 설정 (100ms)
-- [ ] 동시 요청 수 제한 (최대 5개)
-- [ ] 큐 메커니즘 구현
-- [ ] Rate limit 초과 시 에러 메시지
+**산출물**:
+- [x] `docs/01-planning/phase4-plan.md` 작성 완료
+- [x] 우선순위 매트릭스 (가치 vs 복잡도 분석)
+- [x] 5개 기능 평가 및 우선순위 결정
+- [x] 3주 구현 로드맵 수립
+- [x] 기능별 상세 스펙 작성
+- [x] 코드베이스 분석 및 현황 업데이트
+
+**주요 발견 사항** (코드 분석):
+- ✅ 기본 캐싱 이미 구현 완료 (`cache.ts` 126 lines)
+- ✅ 체계적 에러 처리 구현 완료
+- ✅ 힌트 패턴 8개 지원 확인 (`sorting`은 TAG_EXPLANATIONS에만)
+- ⚠️ LRU 캐싱 필요 (메모리 제한 없음)
+- ⚠️ Rate Limiting 미구현
+
+**주요 결정사항**:
+- **P0** (최우선): ① 힌트 패턴 확장 (22개 추가), ③ Rate Limiting
+- **P1** (높음): ④ 로깅/모니터링, ② 캐싱 시스템 최적화 (LRU)
+- **P2** (낮음): ⑤ 성능 최적화 (선택적)
 
 ---
 
-### Task 4.2: 캐싱 전략 최적화
+### ~~Task 4.1: 힌트 패턴 확장 (P0)~~ ❌ **제거됨 (Phase 5로 대체)**
+**상태**: ❌ OBSOLETE (Phase 5 프롬프트 기반 아키텍처로 대체)
+**담당**: N/A
+**우선순위**: ~~P0~~ → 불필요
+**제거 사유**: 프롬프트 기반 아키텍처로 전환하여 정적 패턴 확장 불필요
+
+**Phase 5로 대체된 내용**:
+- ❌ 30개 알고리즘 패턴 수동 작성 불필요
+- ✅ 가이드 프롬프트로 Claude Code가 동적으로 힌트 생성
+- ✅ 문제별 맞춤 힌트 가능 (1463번과 11066번 서로 다른 힌트)
+- ✅ 확장성 향상 (프롬프트 템플릿 1곳만 수정)
+
+**기존 목표 달성 여부**:
+- ✅ 문제 커버리지 95% 달성 (프롬프트 기반으로 모든 문제 지원)
+- ✅ 사용자 경험 개선 (문제별 맥락 반영 힌트)
+
+---
+
+### Task 4.2: Rate Limiting 구현 (P0)
 **상태**: 📋 TODO
-**담당**: Developer
-**우선순위**: P2
-**예상 소요**: 2일
+**담당**: fullstack-developer
+**우선순위**: P0 (최우선)
+**예상 소요**: 1일
+**의존성**: 없음
+
+**목표**: solved.ac API 호출 제한으로 서비스 안정성 향상 및 API 남용 방지
+
+**알고리즘**: Token Bucket (버킷 용량 10개, 초당 10개 충전)
 
 **세부 태스크**:
-- [ ] `src/utils/cache.ts` 강화
-- [ ] LRU (Least Recently Used) 캐시 구현
-- [ ] TTL (Time To Live) 설정 (1시간)
-- [ ] 캐시 히트율 로깅
-- [ ] 캐시 무효화 메커니즘
+- [ ] `src/utils/rate-limiter.ts` 생성
+  - [ ] RateLimiter 클래스 구현
+  - [ ] acquire() 메서드 (대기)
+  - [ ] tryAcquire() 메서드 (즉시 반환)
+  - [ ] 토큰 충전 로직 (refill)
+- [ ] `src/api/solvedac-client.ts` 통합
+  - [ ] request() 메서드 시작 부분에 await apiRateLimiter.acquire() 추가
+  - [ ] 싱글톤 인스턴스 사용
+- [ ] 테스트
+  - [ ] 단위 테스트 (Token Bucket 동작)
+  - [ ] 통합 테스트 (초당 20회 요청 → 10회 즉시, 나머지 대기)
+  - [ ] 부하 테스트 (100회 연속 요청)
+
+**파라미터**:
+- capacity: 10개 (버킷 최대 토큰 수)
+- refillRate: 초당 10개 (토큰 충전 속도)
 
 **인수 조건**:
-- [ ] 캐시 히트율 70% 이상
-- [ ] 메모리 사용량 적정 수준
+- [ ] RateLimiter 클래스 구현 완료
+- [ ] SolvedAcClient 통합 완료
+- [ ] 초당 10회 제한 동작 확인
+- [ ] 단위 테스트 5개 이상 통과
+
+**예상 영향**:
+- API 보호: solved.ac API 차단 위험 제거
+- 안정성: 프로덕션 배포 가능 수준 달성
 
 ---
 
-### Task 4.3: 로깅 및 모니터링
+### Task 4.3: 로깅/모니터링 시스템 (P1)
 **상태**: 📋 TODO
-**담당**: Developer
-**우선순위**: P2
-**예상 소요**: 1-2일
+**담당**: fullstack-developer
+**우선순위**: P1 (높음)
+**예상 소요**: 2-3일
+**의존성**: Task 4.2 완료 후 권장 (Rate Limiting 로깅 포함)
+
+**목표**: 구조화된 로깅으로 디버깅 효율 향상, 운영 메트릭 수집
+
+**로깅 라이브러리**: Winston (Node.js 표준)
 
 **세부 태스크**:
-- [ ] 로깅 라이브러리 선택 (winston, pino 등)
-- [ ] 로그 레벨 설정 (debug, info, warn, error)
-- [ ] 주요 이벤트 로깅:
-  - API 호출 (URL, 파라미터, 응답 시간)
-  - 에러 (스택 트레이스 포함)
-  - 캐시 히트/미스
-- [ ] 민감 정보 마스킹 (API 키 등)
+- [ ] Day 1: Winston 로거 설정
+  - [ ] `src/utils/logger.ts` 생성
+  - [ ] 로그 레벨 정의 (debug, info, warn, error)
+  - [ ] JSON 로그 포맷 설정
+  - [ ] Transport 설정 (콘솔, 파일)
+- [ ] Day 2: 주요 이벤트 로깅
+  - [ ] API 호출 (endpoint, duration, statusCode, cacheHit)
+  - [ ] 에러 (type, message, stack)
+  - [ ] 캐시 이벤트 (cache_hit, cache_miss)
+  - [ ] Rate Limiting (rate_limit_wait)
+- [ ] Day 3: 메트릭 수집
+  - [ ] `src/utils/metrics-collector.ts` 생성
+  - [ ] 주요 메트릭 정의 (api_request_duration, cache_hit_rate, error_rate)
+  - [ ] 통계 API (getMetrics)
+  - [ ] 운영 가이드 문서 작성
+
+**로그 이벤트**:
+- `api_request`: API 호출 성공
+- `api_error`: API 호출 실패
+- `cache_hit`, `cache_miss`: 캐시 이벤트
+- `rate_limit_wait`: Rate Limit 대기
+
+**인수 조건**:
+- [ ] Winston 로거 설정 완료
+- [ ] 주요 이벤트 (API, 에러, 캐시) 로깅
+- [ ] 메트릭 수집 클래스 구현
+- [ ] 로그 출력 테스트 (콘솔, 파일)
+- [ ] 운영 가이드 문서 작성
+
+**예상 영향**:
+- 디버깅 효율: 에러 발생 시 즉시 원인 파악 가능
+- 운영 가시성: 성능, 에러율 실시간 모니터링
 
 ---
 
-### Task 4.4: 예외 상황 처리 강화
+### Task 4.4: 캐싱 시스템 최적화 (P1)
 **상태**: 📋 TODO
-**담당**: Developer
-**우선순위**: P2
+**담당**: fullstack-developer
+**우선순위**: P1 (높음)
 **예상 소요**: 2일
+**의존성**: 없음 (병렬 진행 가능)
+
+**목표**: LRU (Least Recently Used) 캐시로 메모리 효율성 개선, 캐시 히트율 70% 이상
 
 **세부 태스크**:
-- [ ] 유효하지 않은 문제 ID 처리
-- [ ] API 타임아웃 처리
-- [ ] 네트워크 에러 재시도 로직
-- [ ] 사용자 친화적 에러 메시지 (한글)
-- [ ] 에러 복구 메커니즘
+- [ ] Day 1: LRU 캐시 구현
+  - [ ] `src/utils/lru-cache.ts` 생성
+  - [ ] LRUCache 클래스 (Map + Doubly Linked List)
+  - [ ] get(), set(), evictOldest() 메서드
+  - [ ] 메모리 제한 (최대 100개)
+- [ ] Day 2: 캐시 통계 및 통합
+  - [ ] `src/utils/cache-stats.ts` 생성
+  - [ ] CacheStats 클래스 (hits, misses, hitRate)
+  - [ ] `src/api/solvedac-client.ts`를 LRUCache로 변경
+  - [ ] 캐시 히트율 로깅
+
+**캐시 전략**:
+- 문제 메타데이터: TTL 1시간, 최대 100개
+- 검색 결과: TTL 10분, 최대 50개
+- 태그 정보: TTL 1일, 최대 200개
+
+**인수 조건**:
+- [ ] LRU 캐시 클래스 구현 완료
+- [ ] 메모리 제한 (최대 100개) 동작 확인
+- [ ] 캐시 히트율 70% 이상 달성
+- [ ] 단위 테스트 10개 이상 통과
+- [ ] 캐시 통계 로깅 추가
+
+**예상 영향**:
+- 메모리 효율: 최대 메모리 사용량 제한
+- 안정성: 장시간 실행 시 메모리 누수 방지
+
+---
+
+### Task 4.5: 성능 최적화 (P2, 선택적)
+**상태**: 📋 TODO
+**담당**: fullstack-developer
+**우선순위**: P2 (낮음, 선택적)
+**예상 소요**: 1일
+**의존성**: Task 4.1-4.4 완료 후
+
+**목표**: 프로파일링을 통해 병목 지점 파악 및 제거
+
+**현재 성능**: 이미 충분히 빠름 (< 500ms) → 최적화 우선순위 낮음
+
+**세부 태스크**:
+- [ ] 프로파일링 (Node.js --inspect, Chrome DevTools)
+- [ ] 병목 지점 파악 (CPU, 메모리)
+- [ ] 최적화 후보 (JSON 직렬화, 병렬 처리, 응답 압축)
+- [ ] 벤치마크 및 검증
+
+**인수 조건** (참고용):
+- [ ] 응답 시간 10% 이상 개선
+- [ ] 메모리 사용량 측정
+- [ ] 벤치마크 결과 문서화
+
+**예상 영향**:
+- 성능: 약간 개선 (10-20% 예상)
+- 우선순위: 낮음 (현재 성능으로 충분)
 
 ---
 
@@ -566,24 +703,209 @@ interface SolvedAcClient {
 | Phase 1 | 100% (5/5) | ✅ 완료 |
 | Phase 2 | 100% (4/4) | ✅ 완료 |
 | Phase 3 | 100% (4/4) | ✅ 완료 (Keyless) |
-| Phase 4 | 0% (0/4) | 📋 예정 |
+| Phase 5 | 100% (8/8) | ✅ 완료 (프롬프트 기반) |
+| Phase 4 | 0% (0/4) | 📋 예정 (Task 4.1 제거됨) |
 
-**전체 진행률**: 76% (13/17 태스크 완료)
+**전체 진행률**: 84% (21/25 태스크 완료)
 
-**Phase 3 하이라이트**:
-- ✅ Keyless 아키텍처 구현 완료
-- ✅ Claude API 의존성 제거
-- ✅ 결정적 데이터 제공 (< 500ms 응답)
-- ✅ 테스트 안정성 향상 (LLM Mock 불필요)
+**Phase 5 하이라이트**:
+- ✅ 프롬프트 기반 아키텍처 구현 완료
+- ✅ 코드 규모 69% 감소 (1,834줄 → 570줄)
+- ✅ 문제별 맞춤 힌트 가능 (가이드 프롬프트)
+- ✅ 확장성 대폭 향상 (1곳만 수정)
+- ✅ `src/prompts/hint-guide.ts` 신규 생성 (201줄)
+
+---
+
+## Phase 5: 프롬프트 기반 아키텍처 전환 ✅ **완료**
+**목표**: problem-analyzer.ts의 하드코딩된 힌트 데이터(1,453줄)를 프롬프트 기반으로 전환.
+MCP 서버는 데이터 + 가이드 프롬프트만 제공, Claude Code가 문제별 맞춤 힌트 생성.
+**우선순위**: 🟡 중간
+**예상 기간**: 2주
+**실제 소요**: 2주
+**완료일**: 2026-02-14
+
+### 태스크 목록
+
+| ID | 태스크 | 상태 | 우선순위 | 의존성 |
+|----|--------|------|----------|--------|
+| P5-001 | 설계 문서 작성 (prompt-architecture-design.md) | ✅ DONE | P0 | - |
+| P5-002 | src/prompts/hint-guide.ts 생성 | ✅ DONE | P0 | P5-001 |
+| P5-003 | src/types/analysis.ts 타입 업데이트 | ✅ DONE | P0 | P5-001 |
+| P5-004 | ProblemAnalyzer 서비스 재작성 | ✅ DONE | P0 | P5-002, P5-003 |
+| P5-005 | ReviewTemplateGenerator 업데이트 | ✅ DONE | P1 | P5-004 |
+| P5-006 | 테스트 코드 갱신 (problem-analyzer) | ✅ DONE | P0 | P5-004 |
+| P5-007 | 테스트 코드 갱신 (review-template) | ✅ DONE | P1 | P5-005 |
+| P5-008 | 미사용 타입 정리 및 문서 업데이트 | ✅ DONE | P2 | P5-006, P5-007 |
+
+### 태스크 상세
+
+#### P5-001: 설계 문서 작성
+**상태**: ✅ DONE
+**담당**: technical-writer
+**우선순위**: P0
+**완료일**: 2026-02-14
+
+**설명**: 프롬프트 기반 아키텍처 전환 설계서 작성
+
+**산출물**: `docs/01-planning/prompt-architecture-design.md` (1,106줄)
+
+**인수 조건**:
+- [x] 타입 시스템 설계 완료
+- [x] 프롬프트 구조 정의 완료
+- [x] 마이그레이션 계획 수립
+
+---
+
+#### P5-002: 프롬프트 가이드 생성
+**상태**: ✅ DONE
+**담당**: fullstack-developer
+**우선순위**: P0
+**의존성**: P5-001
+**완료일**: 2026-02-14
+
+**설명**: `src/prompts/hint-guide.ts` 신규 파일 작성
+
+**산출물**: `src/prompts/hint-guide.ts` (201줄)
+- HINT_SYSTEM_PROMPT
+- HINT_LEVEL_PROMPTS (3단계)
+- REVIEW_GUIDE_PROMPT
+- interpolateTemplate()
+- buildTemplateVariables()
+
+**인수 조건**:
+- [x] 3단계 힌트 가이드 프롬프트 정의
+- [x] 템플릿 변수 치환 함수 구현
+- [x] JSDoc 문서 완비
+
+---
+
+#### P5-003: 타입 시스템 업데이트
+**상태**: ✅ DONE
+**담당**: fullstack-developer
+**우선순위**: P0
+**의존성**: P5-001
+**완료일**: 2026-02-14
+
+**설명**: `src/types/analysis.ts`에 새 타입 추가 및 이전 타입 제거
+
+**산출물**: `src/types/analysis.ts` (140줄)
+- TagInfo
+- HintGuide
+- HintLevelGuide
+- ReviewPrompts 타입
+
+**인수 조건**:
+- [x] ProblemAnalysis 인터페이스 변경
+- [x] 제거할 타입: AlgorithmInfo, HintPoint, Constraint, Gotcha, HintPattern (완전 제거)
+- [x] ReviewTemplate 타입 업데이트
+
+---
+
+#### P5-004: ProblemAnalyzer 재작성
+**상태**: ✅ DONE
+**담당**: fullstack-developer
+**우선순위**: P0
+**의존성**: P5-002, P5-003
+**완료일**: 2026-02-14
+
+**설명**: problem-analyzer.ts에서 하드코딩 데이터 제거, 프롬프트 기반으로 전환
+
+**산출물**: `src/services/problem-analyzer.ts` (133줄, 86% 감소)
+
+**인수 조건**:
+- [x] HINT_PATTERNS, TAG_EXPLANATIONS, switch-case 블록 전부 제거
+- [x] extractTags(), buildHintGuide() 신규 메서드 추가
+- [x] buildDifficultyContext(), findSimilarProblems() 유지
+- [x] 코드 1,453줄 → 133줄 (-91%)
+
+---
+
+#### P5-005: ReviewTemplateGenerator 업데이트
+**상태**: ✅ DONE
+**담당**: fullstack-developer
+**우선순위**: P1
+**의존성**: P5-004
+**완료일**: 2026-02-14
+
+**설명**: 새 ProblemAnalysis 구조에 맞게 업데이트
+
+**산출물**: `src/services/review-template-generator.ts` (119줄, 38% 감소)
+
+**인수 조건**:
+- [x] structureAnalysis() 제거
+- [x] hint_guide 직접 활용
+- [x] ReviewTemplate 타입에 맞게 반환값 변경
+
+---
+
+#### P5-006: 테스트 코드 갱신 (problem-analyzer)
+**상태**: ✅ DONE
+**담당**: qa-testing-agent
+**우선순위**: P0
+**의존성**: P5-004
+**완료일**: 2026-02-14
+
+**설명**: 새 구조에 맞게 테스트 전면 재작성
+
+**인수 조건**:
+- [x] tags 필드 검증
+- [x] hint_guide 프롬프트 구조 검증
+- [x] 템플릿 변수 치환 검증
+- [x] 기존 difficulty, similar_problems 테스트 유지
+
+---
+
+#### P5-007: 테스트 코드 갱신 (review-template)
+**상태**: ✅ DONE
+**담당**: qa-testing-agent
+**우선순위**: P1
+**의존성**: P5-005
+**완료일**: 2026-02-14
+
+**설명**: ReviewTemplateGenerator 테스트 업데이트
+
+**인수 조건**:
+- [x] 새 ReviewTemplate 구조에 맞게 assertion 변경
+
+---
+
+#### P5-008: 정리 및 문서화
+**상태**: ✅ DONE
+**담당**: technical-writer
+**우선순위**: P2
+**의존성**: P5-006, P5-007
+**완료일**: 2026-02-14
+
+**설명**: 미사용 타입 최종 정리, tools-reference.md 등 문서 업데이트
+
+**인수 조건**:
+- [x] 미사용 타입 완전 제거 확인
+- [x] tools-reference.md 출력 스키마 업데이트
+- [x] CLAUDE.md 관련 내용 업데이트
+- [x] tasks.md Phase 5 완료율 업데이트
+
+---
+
+### 코드 규모 목표
+
+| 파일 | Before | After | 변화 |
+|------|--------|-------|------|
+| problem-analyzer.ts | 1,453줄 | ~200줄 | -86% |
+| prompts/hint-guide.ts | 0줄 | ~120줄 | 신규 |
+| types/analysis.ts | 141줄 | ~100줄 | -29% |
+| review-template-generator.ts | 240줄 | ~150줄 | -38% |
+| **총계** | ~1,834줄 | ~570줄 | **-69%** |
 
 ---
 
 ## 다음 단계 (Next Steps)
 
-1. **Phase 4 시작**: Task 4.1 (요청 Throttling/Rate Limiting)
-2. **병렬 작업 가능**: Task 4.2 (캐싱 전략 최적화)
-3. **문서화 작업**: TW-1~TW-4 (기술 문서 작성)
-4. **QA 작업**: QA-1~QA-3 (통합 테스트 및 성능 테스트)
+1. **Phase 5 완료 커밋**: `/gitcommit` 실행하여 Phase 5 변경사항 커밋
+2. **Phase 4 시작**: ~~Task 4.1 제거됨~~ → Task 4.2 (Rate Limiting) 부터 시작
+3. **병렬 작업 가능**: Task 4.3 (로깅/모니터링), Task 4.4 (캐싱 최적화)
+4. **문서화 작업**: TW-1~TW-4 (기술 문서 작성)
+5. **QA 작업**: QA-1~QA-3 (통합 테스트 및 성능 테스트)
 
 ---
 

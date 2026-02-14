@@ -2,7 +2,7 @@
 
 **cote-mcp: BOJ 학습 도우미 MCP Server**
 **버전**: 1.1
-**마지막 업데이트**: 2026-02-13 (Phase 3 구현 완료)
+**마지막 업데이트**: 2026-02-14 (Phase 5 프롬프트 기반 아키텍처 완료)
 
 > **참고**: MCP 도구 이름은 일반 이름을 사용합니다. 향후 슬래시 커맨드(/스킬)를 만들 때 `cote:` prefix를 사용할 예정입니다.
 
@@ -25,13 +25,15 @@ cote-mcp는 7개의 MCP 도구를 제공합니다:
 
 | MCP 도구 | 향후 슬래시 커맨드 | 카테고리 | 목적 | 구현 상태 |
 |---------|------------------|---------|------|---------|
-| `search_problems` | `/cote:search` | 🔍 검색 | 필터를 사용한 문제 검색 | ✅ Phase 1-2 |
-| `get_problem` | `/cote:problem` | 📄 조회 | 특정 문제의 상세 정보 조회 | ✅ Phase 1-2 |
-| `search_tags` | `/cote:tags` | 🏷️ 검색 | 알고리즘 태그 검색 | ✅ Phase 1-2 |
-| `analyze_problem` | `/cote:analyze` | 🔍 분석 | 문제 분석 및 힌트 데이터 생성 | ✅ Phase 3 |
-| `generate_review_template` | `/cote:template` | 📝 템플릿 | 복습 템플릿 및 가이드 프롬프트 생성 | ✅ Phase 3 |
+| `search_problems` | `/cote:search` | 🔍 검색 | 필터를 사용한 문제 검색 | ✅ Phase 1-2 Complete |
+| `get_problem` | `/cote:problem` | 📄 조회 | 특정 문제의 상세 정보 조회 | ✅ Phase 1-2 Complete |
+| `search_tags` | `/cote:tags` | 🏷️ 검색 | 알고리즘 태그 검색 | ✅ Phase 1-2 Complete |
+| ⭐ `analyze_problem` | `/cote:analyze` | 🔍 분석 | 문제 분석 및 힌트 가이드 프롬프트 제공 (프롬프트 기반) | ✅ Phase 5 Complete 🤖 **LLM 활용** |
+| ⭐ `generate_review_template` | `/cote:template` | 📝 템플릿 | 복습 템플릿 및 가이드 프롬프트 생성 (프롬프트 기반) | ✅ Phase 5 Complete 🤖 **LLM 활용** |
 | ~~`get_hint`~~ | ~~`/cote:hint`~~ | 💡 학습 | ~~단계별 힌트 생성 (AI 기반)~~ | ❌ 제거 (Keyless 전환) |
 | ~~`create_review`~~ | ~~`/cote:review`~~ | 📝 복습 | ~~문제 복습 문서 생성~~ | ❌ 제거 (Keyless 전환) |
+
+**⭐ NEW**: Phase 5 프롬프트 기반 아키텍처 완료 - **MCP 서버는 가이드 프롬프트 제공, Claude Code가 힌트 생성**
 
 ---
 
@@ -480,10 +482,15 @@ Dynamic Programming 관련 태그:
 ## analyze_problem
 
 ### 설명
-백준 문제를 분석하여 구조화된 힌트 데이터를 제공합니다.
-**Keyless 아키텍처**로 설계되어 API 키 없이 사용 가능하며, Claude Code가 이 데이터를 받아 자연어 힌트를 생성합니다.
+백준 문제를 분석하여 힌트 생성 가이드 프롬프트를 제공합니다.
 
-**구현 상태**: ✅ Phase 3 완료 (`src/tools/analyze-problem.ts`, `src/services/problem-analyzer.ts`)
+**✅ 프롬프트 기반 아키텍처 (Phase 5)**:
+- 🔑 **API 키 불필요** - 환경 변수 설정 없이 즉시 사용 가능
+- ⚡ **빠른 응답** - 프롬프트 생성 < 500ms
+- 🎯 **결정적 출력** - 같은 입력에 항상 같은 프롬프트 구조 반환
+- 🤖 **Claude Code 활용** - 가이드 프롬프트로 문제별 맞춤 힌트 생성
+
+**구현 상태**: ✅ Phase 5 완료 (`src/tools/analyze-problem.ts`, `src/services/problem-analyzer.ts`, `src/prompts/hint-guide.ts`)
 
 ### 입력 스키마
 
@@ -509,16 +516,15 @@ const AnalyzeProblemInputSchema = z.object({
 | `problem_id` | number | **필수** | - | BOJ 문제 번호 |
 | `include_similar` | boolean | 선택 | true | 유사 문제 추천 포함 여부 |
 
-### 출력 스키마
+### 출력 스키마 (Phase 5)
 
 ```typescript
 {
   problem: Problem;                     // 문제 기본 정보
   difficulty: DifficultyContext;        // 난이도 컨텍스트
-  algorithm: AlgorithmInfo;             // 알고리즘 정보
-  hint_points: HintPoint[];             // 3단계 힌트 포인트
-  constraints: Constraint[];            // 제약 조건 분석
+  tags: TagInfo[];                      // 태그 정보 (간소화)
   similar_problems?: Problem[];         // 유사 문제 추천
+  hint_guide: HintGuide;                // 힌트 생성 가이드 프롬프트
 }
 ```
 
@@ -530,35 +536,41 @@ interface Problem {
   titleKo: string;
   level: number;
   tags: Tag[];
+  acceptedUserCount: number;
+  averageTries: number;
 }
 
 interface DifficultyContext {
   tier: string;              // "Silver III"
-  emoji: string;             // "🥈"
-  percentile: string;        // "상위 30-40%"
-  context: string;           // "Silver 중급 DP 입문 문제"
+  level: number;             // 8
+  emoji: string;             // "⚪"
+  percentile: string;        // "초급 (상위 70-80%)"
+  context: string;           // "Silver 난이도의 다이나믹 프로그래밍 문제"
 }
 
-interface AlgorithmInfo {
-  primary_tags: string[];                    // ["dp"]
-  typical_approaches: string[];              // ["Bottom-up DP"]
-  time_complexity_typical: string;           // "O(N)"
-  space_complexity_typical: string;          // "O(N)"
+interface TagInfo {
+  key: string;               // "dp"
+  name_ko: string;           // "다이나믹 프로그래밍"
 }
 
-interface HintPoint {
+interface HintGuide {
+  context: string;                      // 문제 컨텍스트 요약
+  hint_levels: HintLevelGuide[];        // 3단계 힌트 가이드 프롬프트
+  review_prompts: ReviewPrompts;        // 복습 가이드 프롬프트
+}
+
+interface HintLevelGuide {
   level: 1 | 2 | 3;          // 힌트 레벨
-  type: 'pattern' | 'insight' | 'strategy';
-  key: string;               // 힌트 제목
-  description: string;       // 힌트 설명
-  steps?: string[];          // 구체적 단계 (level 3에만)
-  pitfalls?: string[];       // 주의할 점
+  label: string;             // "패턴 인식" | "핵심 통찰" | "풀이 전략"
+  prompt: string;            // Claude Code를 위한 힌트 생성 지시 프롬프트
 }
 
-interface Constraint {
-  type: 'input_size' | 'value_range' | 'time_limit' | 'memory_limit';
-  description: string;
-  implication: string;       // 제약이 의미하는 바
+interface ReviewPrompts {
+  solution_approach: string;   // 접근 방법 작성 가이드
+  time_complexity: string;     // 시간 복잡도 분석 가이드
+  space_complexity: string;    // 공간 복잡도 분석 가이드
+  key_insights: string;        // 핵심 통찰 추출 가이드
+  difficulties: string;        // 어려움 회고 가이드
 }
 ```
 
@@ -575,7 +587,7 @@ interface Constraint {
 }
 ```
 
-**응답**:
+**응답** (Phase 5):
 ```json
 {
   "problem": {
@@ -584,73 +596,47 @@ interface Constraint {
     "level": 8,
     "tags": [
       { "key": "dp", "displayNames": [{ "language": "ko", "name": "다이나믹 프로그래밍" }] }
-    ]
+    ],
+    "acceptedUserCount": 89000,
+    "averageTries": 2.8
   },
   "difficulty": {
     "tier": "Silver III",
-    "emoji": "🥈",
-    "percentile": "상위 30-40%",
-    "context": "Silver 중급 DP 입문 문제"
+    "level": 8,
+    "emoji": "⚪",
+    "percentile": "초급 (상위 70-80%)",
+    "context": "백준 1463번 \"1로 만들기\" (Silver III)\n알고리즘: 다이나믹 프로그래밍\n정답자: 89,000명 | 평균 시도: 2.8회"
   },
-  "algorithm": {
-    "primary_tags": ["dp"],
-    "typical_approaches": ["Bottom-up DP", "Top-down DP (메모이제이션)"],
-    "time_complexity_typical": "O(N)",
-    "space_complexity_typical": "O(N)"
+  "tags": [
+    { "key": "dp", "name_ko": "다이나믹 프로그래밍" }
+  ],
+  "hint_guide": {
+    "context": "백준 1463번 \"1로 만들기\" (Silver III)\n알고리즘: 다이나믹 프로그래밍\n정답자: 89,000명 | 평균 시도: 2.8회",
+    "hint_levels": [
+      {
+        "level": 1,
+        "label": "패턴 인식",
+        "prompt": "## Level 1: 패턴 인식\n\n백준 1463번 \"1로 만들기\" 문제에 대한 첫 번째 힌트를 제공합니다.\n\n**문제 정보**:\n- 티어: Silver III\n- 난이도: 초급 (상위 70-80%)\n- 정답자 수: 89,000명\n- 평균 시도 횟수: 2.8회\n\n**가이드라인**:\n1. 알고리즘 이름(다이나믹 프로그래밍)을 직접 언급하지 마세요\n2. 문제의 **구조적 특징**만 암시하세요\n3. \"작은 문제를 먼저 풀면...\", \"선택의 결과가...\" 같은 간접적 표현 사용\n4. 학습자가 패턴을 스스로 발견하도록 유도하세요\n\n**출력 형식**:\n- 2-3문장\n- 질문 형태로 끝맺기 권장"
+      },
+      {
+        "level": 2,
+        "label": "핵심 통찰",
+        "prompt": "## Level 2: 핵심 통찰\n\n백준 1463번 \"1로 만들기\" 문제에 대한 두 번째 힌트를 제공합니다.\n\n**문제 정보**:\n- 티어: Silver III\n- 알고리즘: 다이나믹 프로그래밍\n- 정답자 수: 89,000명\n\n**가이드라인**:\n1. 이제 알고리즘 이름(다이나믹 프로그래밍)을 명시하세요\n2. **핵심 아이디어**를 설명하세요 (예: \"부분 문제 결과 재사용\", \"매 단계 최선 선택\")\n3. 이 문제에서 **왜 이 알고리즘이 적합한지** 설명하세요\n4. 구현 방법이나 코드는 주지 마세요\n\n**출력 형식**:\n- 4-5문장\n- 구체적 예시 1개 포함 (문제 컨텍스트 기반)"
+      },
+      {
+        "level": 3,
+        "label": "풀이 전략",
+        "prompt": "## Level 3: 풀이 전략\n\n백준 1463번 \"1로 만들기\" 문제에 대한 세 번째 힌트를 제공합니다.\n\n**문제 정보**:\n- 티어: Silver III\n- 알고리즘: 다이나믹 프로그래밍\n- 평균 시도 횟수: 2.8회 (주의사항 참고)\n\n**가이드라인**:\n1. **단계별 접근법** 제시 (예: \"1단계: 초기화, 2단계: 순회...\")\n2. **주요 변수/자료구조** 제안 (예: \"dp[i][j]는 ~를 의미\")\n3. **엣지 케이스** 주의사항 (예: \"N=1일 때\", \"오버플로우 주의\")\n4. **의사코드 수준** 골격 제공 (완전한 코드 X)\n\n**출력 형식**:\n- 6-8문장\n- 번호 매긴 단계\n- 의사코드 블록 (선택적)"
+      }
+    ],
+    "review_prompts": {
+      "solution_approach": "당신은 백준 1463번 \"1로 만들기\" 문제를 풀고 있는 학습자의 복습 코치입니다...",
+      "time_complexity": "시간 복잡도를 분석하세요. Silver III 문제는 대략 O(?)가 적합합니다.",
+      "space_complexity": "공간 복잡도를 분석하세요. 어떤 자료구조를 사용했나요?",
+      "key_insights": "이 문제의 핵심 아이디어를 한 문장으로 요약하세요.",
+      "difficulties": "어떤 부분이 어려웠나요? 어떻게 극복했나요?"
+    }
   },
-  "hint_points": [
-    {
-      "level": 1,
-      "type": "pattern",
-      "key": "동적 프로그래밍 (DP)",
-      "description": "이 문제는 큰 문제를 작은 부분 문제로 나누어 해결하는 DP 문제입니다. 각 숫자 N에 대해 '1로 만드는 최소 연산 횟수'를 구해야 합니다.",
-      "pitfalls": [
-        "그리디하게 접근하면 최적해를 보장할 수 없습니다",
-        "3으로 나누기가 항상 최선은 아닙니다"
-      ]
-    },
-    {
-      "level": 2,
-      "type": "insight",
-      "key": "상태 정의와 점화식",
-      "description": "dp[i] = i를 1로 만드는 최소 연산 횟수로 정의합니다. dp[i]는 dp[i-1], dp[i/2] (i가 짝수), dp[i/3] (i가 3의 배수) 중 최솟값 + 1입니다.",
-      "pitfalls": [
-        "dp 배열을 초기화할 때 충분히 큰 값으로 설정해야 합니다",
-        "나눗셈 조건을 확인하지 않으면 인덱스 에러가 발생합니다"
-      ]
-    },
-    {
-      "level": 3,
-      "type": "strategy",
-      "key": "Bottom-up 구현 전략",
-      "description": "1부터 N까지 순차적으로 dp 값을 채워나갑니다. 각 i에 대해 가능한 연산(3으로 나누기, 2로 나누기, 1 빼기)을 모두 고려하여 최솟값을 선택합니다.",
-      "steps": [
-        "1. dp 배열을 크기 N+1로 초기화 (dp[1] = 0)",
-        "2. 2부터 N까지 반복",
-        "3. 각 i에 대해:",
-        "   - dp[i] = dp[i-1] + 1 (기본값)",
-        "   - i % 2 == 0이면 dp[i] = min(dp[i], dp[i/2] + 1)",
-        "   - i % 3 == 0이면 dp[i] = min(dp[i], dp[i/3] + 1)",
-        "4. dp[N] 반환"
-      ],
-      "pitfalls": [
-        "dp[0]은 사용하지 않으므로 초기화 불필요",
-        "연산 순서는 결과에 영향을 주지 않습니다"
-      ]
-    }
-  ],
-  "constraints": [
-    {
-      "type": "input_size",
-      "description": "1 ≤ N ≤ 1,000,000",
-      "implication": "O(N) 시간 복잡도로 충분합니다. O(N log N)이나 O(N²)도 가능하지만 비효율적입니다."
-    },
-    {
-      "type": "time_limit",
-      "description": "0.15초 (150ms)",
-      "implication": "Python의 경우 약 1,500만 번 연산, C++은 약 1억 5천만 번 연산 가능. DP 배열 갱신만으로 충분합니다."
-    }
-  ],
   "similar_problems": [
     {
       "problemId": 2579,
@@ -770,13 +756,28 @@ Claude Code: hint_points[1]을 자연어로 변환
 사용자: 자연스러운 한글 힌트 받음
 ```
 
+### Keyless 아키텍처의 장점
+
+#### 1. Zero Configuration
+- ✅ **API 키 불필요**: 환경 변수 설정 없이 즉시 사용 가능
+- ✅ **즉시 실행**: 설치 후 바로 작동
+- ✅ **무료 사용**: Claude API 비용 없음
+
+#### 2. 성능 및 안정성
+- ⚡ **빠른 응답**: LLM 호출 없이 < 500ms 응답
+- 🎯 **결정적 출력**: 같은 입력에 항상 같은 JSON 반환
+- 🧪 **테스트 안정성**: LLM Mock 불필요, Snapshot 테스트 가능
+
+#### 3. 역할 분리
+- 🔧 **MCP 서버**: 결정적 데이터만 제공 (JSON)
+- 🤖 **Claude Code**: 자연어 생성 담당
+- 📊 **데이터 흐름**: User → Claude Code → MCP (JSON) → Claude Code → User
+
 ### 주의사항
 
-- ✅ **API 키 불필요**: 환경 변수 설정 없이 바로 사용 가능
 - Level 3 힌트도 **실제 코드는 제공하지 않습니다** (알고리즘 단계까지만)
 - 힌트는 문제의 태그와 난이도를 기반으로 사전 정의된 패턴에서 생성됩니다
-- 응답 시간 < 500ms (LLM 호출 없음)
-- Claude Code가 자연어 생성을 담당하므로, MCP 서버는 데이터만 제공합니다
+- 패턴 추가/수정이 필요한 경우 `HINT_PATTERNS` 객체를 업데이트하면 됩니다
 
 ### 에러 케이스
 
@@ -793,9 +794,15 @@ Claude Code: hint_points[1]을 자연어로 변환
 
 ### 설명
 문제 복습용 마크다운 템플릿과 가이드 프롬프트를 생성합니다.
-**Keyless 아키텍처**로 설계되어, Claude Code가 템플릿과 프롬프트를 받아 사용자와 대화하며 복습 문서를 완성합니다.
 
-**구현 상태**: ✅ Phase 3 완료 (`src/tools/generate-review-template.ts`, `src/services/review-template-generator.ts`)
+**✅ 프롬프트 기반 아키텍처 (Phase 5)**:
+- 🔑 **API 키 불필요** - 환경 변수 설정 없이 즉시 사용 가능
+- ⚡ **빠른 응답** - 템플릿 생성 < 500ms
+- 💬 **대화형 작성** - Claude Code가 프롬프트로 사용자와 대화하며 복습 문서 완성
+- 📋 **맞춤 템플릿** - 문제별 최적화된 마크다운 템플릿 자동 생성
+- 🤖 **힌트 가이드 통합** - analyze_problem의 hint_guide 활용
+
+**구현 상태**: ✅ Phase 5 완료 (`src/tools/generate-review-template.ts`, `src/services/review-template-generator.ts`)
 
 ### 입력 스키마
 
@@ -821,15 +828,14 @@ const GenerateReviewTemplateInputSchema = z.object({
 | `problem_id` | number | **필수** | BOJ 문제 번호 |
 | `user_notes` | string | 선택 | 초기 메모 또는 간단한 요약 |
 
-### 출력 스키마
+### 출력 스키마 (Phase 5)
 
 ```typescript
 {
   template: string;                  // 마크다운 템플릿
   problem_data: ProblemData;         // 문제 기본 정보
-  analysis: AnalysisInfo;            // 분석 정보
   related_problems: Problem[];       // 관련 문제 추천
-  prompts: GuidePrompts;             // 가이드 프롬프트
+  hint_guide: HintGuide;             // 힌트 가이드 (analyze_problem과 동일)
 }
 ```
 
@@ -840,27 +846,25 @@ interface ProblemData {
   id: number;
   title: string;
   tier: string;                      // "Silver III"
-  tier_emoji: string;                // "🥈"
   tags: string[];                    // ["다이나믹 프로그래밍"]
-  accepted_count: number;
-  average_tries: number;
-  boj_link: string;
+  stats: {
+    acceptedUserCount: number;
+    averageTries: number;
+  };
 }
 
-interface AnalysisInfo {
-  tags_explanation: Record<string, string>;     // { dp: "동적 프로그래밍은..." }
-  common_approaches: string[];                  // ["Bottom-up DP"]
-  time_complexity_hint: string;                 // "일반적으로 O(N) 또는 O(N log N)"
-  space_complexity_hint: string;                // "일반적으로 O(N)"
-  common_mistakes: string[];                    // ["dp 배열 크기 설정", ...]
+interface HintGuide {
+  context: string;                      // 문제 컨텍스트 요약
+  hint_levels: HintLevelGuide[];        // 3단계 힌트 가이드 프롬프트
+  review_prompts: ReviewPrompts;        // 복습 가이드 프롬프트
 }
 
-interface GuidePrompts {
-  solution_approach: string;                    // "이 문제를 어떻게 해결했나요?"
-  time_complexity: string;                      // "시간 복잡도를 분석해주세요..."
-  space_complexity: string;                     // "공간 복잡도는 어떻게 되나요?"
-  key_insights: string;                         // "배운 점이나 주의할 점은?"
-  difficulties: string;                         // "어려웠던 부분이 있었나요?"
+interface ReviewPrompts {
+  solution_approach: string;            // 접근 방법 작성 가이드
+  time_complexity: string;              // 시간 복잡도 분석 가이드
+  space_complexity: string;             // 공간 복잡도 분석 가이드
+  key_insights: string;                 // 핵심 통찰 추출 가이드
+  difficulties: string;                 // 어려움 회고 가이드
 }
 ```
 
@@ -1126,13 +1130,26 @@ Claude Code: 답변을 템플릿에 채우기
 Claude Code: 최종 마크다운 문서 생성
 ```
 
+### Keyless 아키텍처의 장점
+
+#### 1. Zero Configuration
+- ✅ **API 키 불필요**: 환경 변수 설정 없이 즉시 사용 가능
+- ✅ **무료 사용**: Claude API 비용 없음
+
+#### 2. 대화형 작성
+- 💬 **사용자 맞춤**: Claude Code가 사용자와 대화하며 복습 작성
+- 🎯 **유연성**: 사용자 입력에 따라 동적으로 섹션 채워넣기
+- 📝 **자연스러운 문서**: LLM이 최종 문서를 자연스럽게 생성
+
+#### 3. 성능 및 안정성
+- ⚡ **빠른 응답**: 템플릿 생성 < 500ms
+- 🎯 **결정적 템플릿**: 같은 문제에 항상 같은 템플릿 구조
+
 ### 주의사항
 
-- ✅ **API 키 불필요**: 환경 변수 설정 없이 바로 사용 가능
-- Claude Code가 대화형으로 복습 문서를 작성하도록 안내합니다
-- 관련 문제는 같은 태그를 가진 문제 중 비슷한 난이도로 자동 추천됩니다
-- 응답 시간 < 500ms (LLM 호출 없음)
+- 관련 문제는 같은 태그를 가진 문제 중 비슷한 난이도로 자동 추천됩니다 (±2 티어 범위)
 - 최종 문서는 Claude Code가 생성하며, 사용자가 파일로 저장할 수 있습니다
+- 가이드 프롬프트는 Claude Code가 복습 작성을 안내하는 데 사용됩니다
 
 ### 에러 케이스
 

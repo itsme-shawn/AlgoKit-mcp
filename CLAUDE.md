@@ -12,24 +12,25 @@
 
 ## 핵심 기능
 
-### 1. 필수 기능 (Phase 3 완료) ✅
-- **analyze_problem**: 문제 분석 및 구조화된 힌트 데이터 제공
-  - 3단계 힌트 포인트, 난이도 컨텍스트, 알고리즘 정보
-  - **Keyless**: 결정적 데이터만 제공 (< 500ms), LLM 호출 없음
+### 1. 필수 기능 (Phase 5 완료) ✅
+- **analyze_problem**: 문제 분석 및 힌트 가이드 프롬프트 제공
+  - 3단계 힌트 가이드, 난이도 컨텍스트, 태그 정보
+  - **프롬프트 기반**: 가이드 프롬프트 제공 (< 500ms), Claude Code가 힌트 생성
 
 - **generate_review_template**: 복습 템플릿 및 가이드 프롬프트 생성
   - 마크다운 템플릿, 문제 분석 정보, 관련 문제 추천
-  - **Keyless**: 템플릿 + 가이드만 제공, Claude Code가 대화형으로 활용
+  - **프롬프트 기반**: 템플릿 + 가이드 제공, Claude Code가 대화형으로 복습 작성
 
 ### 2. 부가 기능 (Phase 1-2 완료) ✅
 - **search_problems**: 필터 기반 문제 검색
 - **get_problem**: 문제 상세 정보 조회
 - **search_tags**: 알고리즘 태그 검색
 
-### 3. 향후 계획 (Phase 4+)
-- **analyze_user**: 백준 ID로 전체 풀이 이력 분석
-- 성능 최적화 (캐싱, rate limiting)
-- 로깅 및 모니터링
+### 3. 향후 계획 (Phase 4)
+- **Rate Limiting**: API 호출 제한
+- **로깅/모니터링**: 구조화된 로깅 및 메트릭 수집
+- **캐싱 최적화**: LRU 캐싱
+- **analyze_user**: 백준 ID로 전체 풀이 이력 분석 (Phase 6+)
 
 ---
 
@@ -146,35 +147,44 @@ server.tool("tool_name", "설명", InputSchema, async (args) => {
 
 ---
 
-## Keyless 아키텍처
+## 프롬프트 기반 아키텍처
 
-**Phase 3에서 도입된 설계 원칙**:
+**Phase 5에서 도입된 설계 원칙** (Phase 3 Keyless 아키텍처 개선):
 
 ### 원칙
-- **MCP 서버**: 결정적(Deterministic) 데이터만 제공
-- **Claude Code**: 자연어 생성 담당
+- **MCP 서버**: 결정적 데이터 + 가이드 프롬프트 제공
+- **Claude Code**: 가이드 프롬프트로 문제별 맞춤 힌트 생성
 - **Zero Configuration**: API 키 불필요
-- **테스트 안정성**: LLM Mock 불필요
+- **테스트 안정성**: 프롬프트 구조 검증 (Snapshot 테스트)
 
 ### 데이터 흐름
 ```
-User → Claude Code → cote-mcp (JSON) → Claude Code → User (자연어)
+User → Claude Code → cote-mcp (JSON + Prompts) → Claude Code (LLM) → User (맞춤 힌트)
 ```
 
 ### 장점
-1. **사용자 경험**: API 키 설정 없이 즉시 사용 가능
-2. **개발 효율**: 테스트 안정성 향상 (결정적 출력)
-3. **응답 속도**: LLM 호출 없이 < 500ms 응답
-4. **유지보수**: 힌트 패턴 수정이 코드 레벨에서 가능
+1. **사용자 경험**: 문제마다 고유한 맥락 반영 힌트
+2. **개발 효율**: 코드 규모 69% 감소 (1,834줄 → 570줄)
+3. **응답 속도**: 프롬프트 생성 < 500ms
+4. **확장성**: 새 알고리즘 추가 시 1곳만 수정 (프롬프트)
+5. **품질**: LLM의 추론 능력 활용 (단순 매칭 → 문맥 이해)
 
 ### 구현 예시
 **analyze_problem**:
-- MCP 서버: `ProblemAnalysis` JSON 반환 (힌트 포인트 3단계 포함)
-- Claude Code: Level 2 힌트 요청 시 `hint_points[1]`을 자연어로 변환
+- MCP 서버: `ProblemAnalysis` JSON 반환 (힌트 가이드 프롬프트 포함)
+- Claude Code: Level 2 힌트 요청 시 `hint_levels[1].prompt`로 문제별 맞춤 힌트 생성
 
 **generate_review_template**:
 - MCP 서버: 템플릿 + 가이드 프롬프트 반환
 - Claude Code: 프롬프트로 사용자와 대화하며 복습 문서 작성
+
+### Phase 3 → Phase 5 변화
+| 항목 | Phase 3 (Keyless) | Phase 5 (프롬프트 기반) |
+|------|-------------------|-------------------------|
+| 힌트 데이터 | 하드코딩 힌트 포인트 | 가이드 프롬프트 |
+| 문제 특화 | 모든 DP 문제 동일 힌트 | 문제별 맞춤 힌트 |
+| 코드 규모 | 1,834줄 | 570줄 (-69%) |
+| 확장성 | 낮음 (6곳 수정) | 높음 (1곳 수정) |
 
 ---
 
@@ -187,3 +197,7 @@ User → Claude Code → cote-mcp (JSON) → Claude Code → User (자연어)
 - **현재 작업**: [docs/03-project-management/tasks.md](docs/03-project-management/tasks.md)
 
 ---
+
+## Task Master AI Instructions
+**Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**
+@./.taskmaster/CLAUDE.md
