@@ -34,7 +34,7 @@ interface TextContent {
 export function generateReviewTemplateTool(generator: ReviewTemplateGenerator) {
   return {
     name: 'generate_review_template',
-    description: '백준 문제 복습 템플릿 및 작성 가이드를 제공합니다. 마크다운 템플릿, 문제 분석, 관련 문제, 작성 프롬프트를 포함합니다.',
+    description: '사용자의 제출 코드와 문제 본문을 분석해서 사용자 맞춤형 복기용 가이드를 제공합니다. 마크다운 템플릿, 문제 분석, 관련 문제, 작성 프롬프트를 포함합니다.',
     inputSchema: GenerateReviewTemplateInputSchema,
     handler: async (input: GenerateReviewTemplateInput): Promise<TextContent> => {
       try {

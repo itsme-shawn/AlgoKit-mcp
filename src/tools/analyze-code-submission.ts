@@ -38,14 +38,14 @@ interface TextContent {
  *
  * @param args - 입력 인자 (problem_id, code, language, analysis_type)
  * @returns CodeAnalysisResult JSON 문자열
- * @throws {Error} 검증 실패, 크롤링 실패, 파싱 실패, 분석 실패 시
+ * @throws {Error} 검증 실패, 스크래핑 실패, 파싱 실패, 분석 실패 시
  */
 export async function handleAnalyzeCodeSubmission(args: unknown): Promise<TextContent> {
   try {
     // 1. 입력 검증
     const { problem_id, code, language, analysis_type } = AnalyzeCodeSubmissionInputSchema.parse(args);
 
-    // 2. 문제 본문 크롤링 (fetch_problem_content 재사용)
+    // 2. 문제 본문 스크래핑 (fetch_problem_content 재사용)
     const problemContentResponse = await handleFetchProblemContent({ problem_id });
     const problemContent = JSON.parse(problemContentResponse.text);
 
@@ -76,7 +76,7 @@ export async function handleAnalyzeCodeSubmission(args: unknown): Promise<TextCo
       throw new Error(`입력 검증 실패: ${error.issues[0].message}`);
     }
 
-    // 기타 에러 (크롤링/파싱 에러는 handleFetchProblemContent에서 처리됨)
+    // 기타 에러 (스크래핑/파싱 에러는 handleFetchProblemContent에서 처리됨)
     throw error;
   }
 }
