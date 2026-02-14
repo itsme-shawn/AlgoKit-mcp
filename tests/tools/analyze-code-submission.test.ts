@@ -483,7 +483,7 @@ describe('handleAnalyzeCodeSubmission', () => {
       await expect(handleAnalyzeCodeSubmission(invalidInput)).rejects.toThrow('입력 검증 실패');
     });
 
-    it('문제 크롤링 실패 시 에러 전파', async () => {
+    it('문제 스크래핑 실패 시 에러 전파', async () => {
       vi.mocked(handleFetchProblemContent).mockRejectedValue(
         new Error('문제를 찾을 수 없습니다: 99999번')
       );

@@ -162,11 +162,56 @@ describe('search_problems 도구', () => {
     );
 
     it(
-      '실제 API 호출 테스트 - 태그 필터',
+      '실제 API 호출 테스트 - 단일 태그 필터',
       { timeout: 10000 },
       async () => {
         const input = {
-          tag: 'greedy',
+          tags: 'greedy',
+          page: 1,
+        };
+
+        const result = await searchProblems(input);
+
+        expect(result).toContain('문제 검색 결과');
+      }
+    );
+
+    it(
+      '실제 API 호출 테스트 - 다중 태그 필터',
+      { timeout: 10000 },
+      async () => {
+        const input = {
+          tags: ['dp', 'greedy'],
+          page: 1,
+        };
+
+        const result = await searchProblems(input);
+
+        expect(result).toContain('문제 검색 결과');
+      }
+    );
+
+    it(
+      '다중 태그 배열 검증',
+      () => {
+        const multiTagInput = {
+          tags: ['dp', 'greedy', 'bfs'],
+          level_min: 13,
+          level_max: 15,
+        };
+
+        const result = SearchProblemsInputSchema.safeParse(multiTagInput);
+        expect(result.success).toBe(true);
+      }
+    );
+
+    it(
+      '태그 없이도 검색 가능',
+      { timeout: 10000 },
+      async () => {
+        const input = {
+          level_min: 10,
+          level_max: 15,
           page: 1,
         };
 

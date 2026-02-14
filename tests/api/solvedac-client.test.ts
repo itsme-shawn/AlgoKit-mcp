@@ -101,10 +101,24 @@ describe('SolvedAcClient', () => {
           json: async () => mockSearchResult,
         } as Response);
 
-        await client.searchProblems({ tag: 'dp' });
+        await client.searchProblems({ tags: 'dp' });
 
         const callUrl = fetchSpy.mock.calls[0][0] as string;
         expect(callUrl).toContain('%23dp'); // URL-encoded '#dp'
+      });
+
+      it('should filter by multiple tags', { timeout: 5000 }, async () => {
+        fetchSpy.mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockSearchResult,
+        } as Response);
+
+        await client.searchProblems({ tags: ['dp', 'greedy', 'bfs'] });
+
+        const callUrl = fetchSpy.mock.calls[0][0] as string;
+        expect(callUrl).toContain('%23dp'); // URL-encoded '#dp'
+        expect(callUrl).toContain('%23greedy'); // URL-encoded '#greedy'
+        expect(callUrl).toContain('%23bfs'); // URL-encoded '#bfs'
       });
     });
 
@@ -119,7 +133,7 @@ describe('SolvedAcClient', () => {
           query: '최단거리',
           level_min: 11,
           level_max: 15,
-          tag: 'graphs',
+          tags: 'graphs',
           sort: 'level',
           direction: 'asc',
         });

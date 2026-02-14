@@ -104,7 +104,7 @@ describe('handleFetchProblemContent', () => {
   });
 
   describe('정상 케이스', () => {
-    it('문제 1000번 크롤링 성공', async () => {
+    it('문제 1000번 스크래핑 성공', async () => {
       // Mock HTML 응답
       const mockHtml = '<html>...</html>';
       mockFetchProblemPage.mockResolvedValue(mockHtml);
@@ -150,7 +150,7 @@ describe('handleFetchProblemContent', () => {
       expect(mockParseProblemContent).toHaveBeenCalledWith(mockHtml, 1000);
     });
 
-    it('여러 예제가 있는 문제 크롤링', async () => {
+    it('여러 예제가 있는 문제 스크래핑', async () => {
       const mockHtml = '<html>...</html>';
       mockFetchProblemPage.mockResolvedValue(mockHtml);
 

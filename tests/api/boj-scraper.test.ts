@@ -1,7 +1,7 @@
 /**
  * BOJ Scraper 테스트
  *
- * Phase 6 - P6-002: 문제 본문 크롤러 구현
+ * Phase 6 - P6-002: 문제 본문 스크래퍼 구현
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
