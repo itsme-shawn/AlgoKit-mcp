@@ -45,7 +45,7 @@ import { ReviewTemplateGenerator } from './services/review-template-generator.js
  */
 const apiClient = new SolvedAcClient();
 const problemAnalyzer = new ProblemAnalyzer(apiClient);
-const reviewTemplateGenerator = new ReviewTemplateGenerator(apiClient, problemAnalyzer);
+const reviewTemplateGenerator = new ReviewTemplateGenerator(problemAnalyzer);
 
 // 도구 객체 생성
 const analyzeProblemToolObj = analyzeProblemTool(problemAnalyzer);
@@ -95,8 +95,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: 'analyze_problem',
         description:
-          'BOJ 문제를 분석하고 구조화된 힌트 데이터를 제공합니다. ' +
-          '3단계 힌트 포인트, 난이도 컨텍스트, 알고리즘 정보, 유사 문제 추천을 포함합니다.',
+          'BOJ 문제를 분석하고 힌트 생성 가이드를 제공합니다. ' +
+          '난이도 컨텍스트, 태그 정보, 3단계 힌트 가이드 프롬프트, 유사 문제 추천을 포함합니다.',
         inputSchema: zodToJsonSchema(AnalyzeProblemInputSchema as any) as any,
       },
       {
