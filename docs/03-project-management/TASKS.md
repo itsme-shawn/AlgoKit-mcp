@@ -348,7 +348,246 @@ interface SolvedAcClient {
 
 ---
 
-## Phase 4: 완성도 & 최적화 (Polish & Optimization)
+## Phase 5: 프롬프트 기반 아키텍처 전환 ✅ **완료**
+**목표**: problem-analyzer.ts의 하드코딩된 힌트 데이터(1,453줄)를 프롬프트 기반으로 전환.
+MCP 서버는 데이터 + 가이드 프롬프트만 제공, Claude Code가 문제별 맞춤 힌트 생성.
+**우선순위**: 🟡 중간
+**예상 기간**: 2주
+**실제 소요**: 2주
+**완료일**: 2026-02-14
+
+### 태스크 목록
+
+| ID | 태스크 | 상태 | 우선순위 | 의존성 |
+|----|--------|------|----------|--------|
+| P5-001 | 설계 문서 작성 (prompt-architecture-design.md) | ✅ DONE | P0 | - |
+| P5-002 | src/prompts/hint-guide.ts 생성 | ✅ DONE | P0 | P5-001 |
+| P5-003 | src/types/analysis.ts 타입 업데이트 | ✅ DONE | P0 | P5-001 |
+| P5-004 | ProblemAnalyzer 서비스 재작성 | ✅ DONE | P0 | P5-002, P5-003 |
+| P5-005 | ReviewTemplateGenerator 업데이트 | ✅ DONE | P1 | P5-004 |
+| P5-006 | 테스트 코드 갱신 (problem-analyzer) | ✅ DONE | P0 | P5-004 |
+| P5-007 | 테스트 코드 갱신 (review-template) | ✅ DONE | P1 | P5-005 |
+| P5-008 | 미사용 타입 정리 및 문서 업데이트 | ✅ DONE | P2 | P5-006, P5-007 |
+
+### 태스크 상세
+
+#### P5-001: 설계 문서 작성
+**상태**: ✅ DONE
+**담당**: technical-writer
+**우선순위**: P0
+**완료일**: 2026-02-14
+
+**설명**: 프롬프트 기반 아키텍처 전환 설계서 작성
+
+**산출물**: `docs/01-planning/prompt-architecture-design.md` (1,106줄)
+
+**인수 조건**:
+- [x] 타입 시스템 설계 완료
+- [x] 프롬프트 구조 정의 완료
+- [x] 마이그레이션 계획 수립
+
+---
+
+#### P5-002: 프롬프트 가이드 생성
+**상태**: ✅ DONE
+**담당**: fullstack-developer
+**우선순위**: P0
+**의존성**: P5-001
+**완료일**: 2026-02-14
+
+**설명**: `src/prompts/hint-guide.ts` 신규 파일 작성
+
+**산출물**: `src/prompts/hint-guide.ts` (201줄)
+- HINT_SYSTEM_PROMPT
+- HINT_LEVEL_PROMPTS (3단계)
+- REVIEW_GUIDE_PROMPT
+- interpolateTemplate()
+- buildTemplateVariables()
+
+**인수 조건**:
+- [x] 3단계 힌트 가이드 프롬프트 정의
+- [x] 템플릿 변수 치환 함수 구현
+- [x] JSDoc 문서 완비
+
+---
+
+#### P5-003: 타입 시스템 업데이트
+**상태**: ✅ DONE
+**담당**: fullstack-developer
+**우선순위**: P0
+**의존성**: P5-001
+**완료일**: 2026-02-14
+
+**설명**: `src/types/analysis.ts`에 새 타입 추가 및 이전 타입 제거
+
+**산출물**: `src/types/analysis.ts` (140줄)
+- TagInfo
+- HintGuide
+- HintLevelGuide
+- ReviewPrompts 타입
+
+**인수 조건**:
+- [x] ProblemAnalysis 인터페이스 변경
+- [x] 제거할 타입: AlgorithmInfo, HintPoint, Constraint, Gotcha, HintPattern (완전 제거)
+- [x] ReviewTemplate 타입 업데이트
+
+---
+
+#### P5-004: ProblemAnalyzer 재작성
+**상태**: ✅ DONE
+**담당**: fullstack-developer
+**우선순위**: P0
+**의존성**: P5-002, P5-003
+**완료일**: 2026-02-14
+
+**설명**: problem-analyzer.ts에서 하드코딩 데이터 제거, 프롬프트 기반으로 전환
+
+**산출물**: `src/services/problem-analyzer.ts` (133줄, 86% 감소)
+
+**인수 조건**:
+- [x] HINT_PATTERNS, TAG_EXPLANATIONS, switch-case 블록 전부 제거
+- [x] extractTags(), buildHintGuide() 신규 메서드 추가
+- [x] buildDifficultyContext(), findSimilarProblems() 유지
+- [x] 코드 1,453줄 → 133줄 (-91%)
+
+---
+
+#### P5-005: ReviewTemplateGenerator 업데이트
+**상태**: ✅ DONE
+**담당**: fullstack-developer
+**우선순위**: P1
+**의존성**: P5-004
+**완료일**: 2026-02-14
+
+**설명**: 새 ProblemAnalysis 구조에 맞게 업데이트
+
+**산출물**: `src/services/review-template-generator.ts` (119줄, 38% 감소)
+
+**인수 조건**:
+- [x] structureAnalysis() 제거
+- [x] hint_guide 직접 활용
+- [x] ReviewTemplate 타입에 맞게 반환값 변경
+
+---
+
+#### P5-006: 테스트 코드 갱신 (problem-analyzer)
+**상태**: ✅ DONE
+**담당**: qa-testing-agent
+**우선순위**: P0
+**의존성**: P5-004
+**완료일**: 2026-02-14
+
+**설명**: 새 구조에 맞게 테스트 전면 재작성
+
+**인수 조건**:
+- [x] tags 필드 검증
+- [x] hint_guide 프롬프트 구조 검증
+- [x] 템플릿 변수 치환 검증
+- [x] 기존 difficulty, similar_problems 테스트 유지
+
+---
+
+#### P5-007: 테스트 코드 갱신 (review-template)
+**상태**: ✅ DONE
+**담당**: qa-testing-agent
+**우선순위**: P1
+**의존성**: P5-005
+**완료일**: 2026-02-14
+
+**설명**: ReviewTemplateGenerator 테스트 업데이트
+
+**인수 조건**:
+- [x] 새 ReviewTemplate 구조에 맞게 assertion 변경
+
+---
+
+#### P5-008: 정리 및 문서화
+**상태**: ✅ DONE
+**담당**: technical-writer
+**우선순위**: P2
+**의존성**: P5-006, P5-007
+**완료일**: 2026-02-14
+
+**설명**: 미사용 타입 최종 정리, tools-reference.md 등 문서 업데이트
+
+**인수 조건**:
+- [x] 미사용 타입 완전 제거 확인
+- [x] tools-reference.md 출력 스키마 업데이트
+- [x] CLAUDE.md 관련 내용 업데이트
+- [x] tasks.md Phase 5 완료율 업데이트
+
+---
+
+### 코드 규모 목표
+
+| 파일 | Before | After | 변화 |
+|------|--------|-------|------|
+| problem-analyzer.ts | 1,453줄 | ~200줄 | -86% |
+| prompts/hint-guide.ts | 0줄 | ~120줄 | 신규 |
+| types/analysis.ts | 141줄 | ~100줄 | -29% |
+| review-template-generator.ts | 240줄 | ~150줄 | -38% |
+| **총계** | ~1,834줄 | ~570줄 | **-69%** |
+
+---
+
+## Phase 6: BOJ 문제 본문 크롤링 및 코드 분석 ✅ **완료** (우선순위: P0 - 다음)
+**목표**: fetch + cheerio를 사용하여 BOJ 문제 본문을 크롤링하고, 사용자 코드와 함께 분석하여 구체적인 피드백 제공
+**우선순위**: 🔴 높음
+**예상 기간**: 2-3주
+**실제 완료**: 2026-02-14
+**진행률**: 100% (8/8 태스크 완료) ✅
+
+### 주요 완료 항목
+
+#### 1. 문제 본문 크롤링 시스템
+- ✅ `src/api/boj-scraper.ts`: fetch 기반 BOJ 페이지 크롤러
+- ✅ `src/utils/html-parser.ts`: cheerio 기반 HTML 파서
+- ✅ `src/types/problem-content.ts`: 문제 본문 타입 정의
+- ✅ 캐싱 시스템 구현 (LRU, 30일 TTL)
+
+#### 2. fetch_problem_content MCP 도구
+- ✅ 문제 설명, 입출력 형식, 예제, 제한사항 크롤링
+- ✅ CSS Selector 기반 섹션 파싱
+- ✅ 에러 처리 (NOT_FOUND, NETWORK_ERROR, PARSE_ERROR)
+- ✅ MCP 서버에 도구 등록 완료
+
+#### 3. 코드 분석 시스템
+- ✅ `src/services/code-analyzer.ts`: 코드 분석 프롬프트 생성
+- ✅ 4가지 분석 타입 지원:
+  - **full**: 종합 분석 (알고리즘, 복잡도, 엣지케이스, 스타일)
+  - **hint**: 힌트 제공 (접근법 문제점, 다음 단계)
+  - **debug**: 디버깅 지원 (버그 탐지, 경계 조건)
+  - **review**: 복습용 분석 (학습 포인트, 개선점)
+- ✅ 지원 언어: Python, C++, JavaScript, Java, Go
+
+#### 4. analyze_code_submission MCP 도구
+- ✅ 문제 본문 + 사용자 코드 결합 분석
+- ✅ Zod 스키마 정의 및 입력 검증
+- ✅ 프롬프트 기반 분석 (Claude Code가 LLM으로 피드백 생성)
+- ✅ MCP 서버에 도구 등록 완료
+
+#### 5. 테스트 및 문서화
+- ✅ 단위 테스트: `tests/api/boj-scraper.test.ts`, `tests/utils/html-parser.test.ts`
+- ✅ 통합 테스트: `tests/tools/fetch-problem-content.test.ts`, `tests/tools/analyze-code-submission.test.ts`
+- ✅ 문서 업데이트: `docs/02-development/TOOLS.md`, `CLAUDE.md`
+- ✅ E2E 테스트 가이드: `docs/04-testing/e2e-manual-test-guide.md`
+
+### 태스크 목록
+
+| ID | 태스크 | 상태 | 완료일 |
+|----|--------|------|--------|
+| P6-001 | HTTP 요청 및 파싱 준비 | ✅ DONE | 2026-02-14 |
+| P6-002 | 문제 본문 크롤러 구현 | ✅ DONE | 2026-02-14 |
+| P6-003 | 캐싱 시스템 구현 | ✅ DONE | 2026-02-14 |
+| P6-004 | fetch_problem_content 도구 | ✅ DONE | 2026-02-14 |
+| P6-005 | 코드 분석 프롬프트 생성 | ✅ DONE | 2026-02-14 |
+| P6-006 | analyze_code_submission 도구 | ✅ DONE | 2026-02-14 |
+| P6-007 | 기존 도구 개선 | ✅ DONE | 2026-02-14 |
+| P6-008 | 문서 및 예제 | ✅ DONE | 2026-02-14 |
+
+---
+
+## Phase 4: 완성도 & 최적화 (Polish & Optimization) (우선순위: P2 - 선택적)
 **목표**: 프로덕션 준비 (Production-Ready)
 **우선순위**: 🔴 높음 (Phase 1-3 완료 후)
 **예상 기간**: 3주 (15일)
@@ -714,188 +953,6 @@ interface SolvedAcClient {
 - ✅ 문제별 맞춤 힌트 가능 (가이드 프롬프트)
 - ✅ 확장성 대폭 향상 (1곳만 수정)
 - ✅ `src/prompts/hint-guide.ts` 신규 생성 (201줄)
-
----
-
-## Phase 5: 프롬프트 기반 아키텍처 전환 ✅ **완료**
-**목표**: problem-analyzer.ts의 하드코딩된 힌트 데이터(1,453줄)를 프롬프트 기반으로 전환.
-MCP 서버는 데이터 + 가이드 프롬프트만 제공, Claude Code가 문제별 맞춤 힌트 생성.
-**우선순위**: 🟡 중간
-**예상 기간**: 2주
-**실제 소요**: 2주
-**완료일**: 2026-02-14
-
-### 태스크 목록
-
-| ID | 태스크 | 상태 | 우선순위 | 의존성 |
-|----|--------|------|----------|--------|
-| P5-001 | 설계 문서 작성 (prompt-architecture-design.md) | ✅ DONE | P0 | - |
-| P5-002 | src/prompts/hint-guide.ts 생성 | ✅ DONE | P0 | P5-001 |
-| P5-003 | src/types/analysis.ts 타입 업데이트 | ✅ DONE | P0 | P5-001 |
-| P5-004 | ProblemAnalyzer 서비스 재작성 | ✅ DONE | P0 | P5-002, P5-003 |
-| P5-005 | ReviewTemplateGenerator 업데이트 | ✅ DONE | P1 | P5-004 |
-| P5-006 | 테스트 코드 갱신 (problem-analyzer) | ✅ DONE | P0 | P5-004 |
-| P5-007 | 테스트 코드 갱신 (review-template) | ✅ DONE | P1 | P5-005 |
-| P5-008 | 미사용 타입 정리 및 문서 업데이트 | ✅ DONE | P2 | P5-006, P5-007 |
-
-### 태스크 상세
-
-#### P5-001: 설계 문서 작성
-**상태**: ✅ DONE
-**담당**: technical-writer
-**우선순위**: P0
-**완료일**: 2026-02-14
-
-**설명**: 프롬프트 기반 아키텍처 전환 설계서 작성
-
-**산출물**: `docs/01-planning/prompt-architecture-design.md` (1,106줄)
-
-**인수 조건**:
-- [x] 타입 시스템 설계 완료
-- [x] 프롬프트 구조 정의 완료
-- [x] 마이그레이션 계획 수립
-
----
-
-#### P5-002: 프롬프트 가이드 생성
-**상태**: ✅ DONE
-**담당**: fullstack-developer
-**우선순위**: P0
-**의존성**: P5-001
-**완료일**: 2026-02-14
-
-**설명**: `src/prompts/hint-guide.ts` 신규 파일 작성
-
-**산출물**: `src/prompts/hint-guide.ts` (201줄)
-- HINT_SYSTEM_PROMPT
-- HINT_LEVEL_PROMPTS (3단계)
-- REVIEW_GUIDE_PROMPT
-- interpolateTemplate()
-- buildTemplateVariables()
-
-**인수 조건**:
-- [x] 3단계 힌트 가이드 프롬프트 정의
-- [x] 템플릿 변수 치환 함수 구현
-- [x] JSDoc 문서 완비
-
----
-
-#### P5-003: 타입 시스템 업데이트
-**상태**: ✅ DONE
-**담당**: fullstack-developer
-**우선순위**: P0
-**의존성**: P5-001
-**완료일**: 2026-02-14
-
-**설명**: `src/types/analysis.ts`에 새 타입 추가 및 이전 타입 제거
-
-**산출물**: `src/types/analysis.ts` (140줄)
-- TagInfo
-- HintGuide
-- HintLevelGuide
-- ReviewPrompts 타입
-
-**인수 조건**:
-- [x] ProblemAnalysis 인터페이스 변경
-- [x] 제거할 타입: AlgorithmInfo, HintPoint, Constraint, Gotcha, HintPattern (완전 제거)
-- [x] ReviewTemplate 타입 업데이트
-
----
-
-#### P5-004: ProblemAnalyzer 재작성
-**상태**: ✅ DONE
-**담당**: fullstack-developer
-**우선순위**: P0
-**의존성**: P5-002, P5-003
-**완료일**: 2026-02-14
-
-**설명**: problem-analyzer.ts에서 하드코딩 데이터 제거, 프롬프트 기반으로 전환
-
-**산출물**: `src/services/problem-analyzer.ts` (133줄, 86% 감소)
-
-**인수 조건**:
-- [x] HINT_PATTERNS, TAG_EXPLANATIONS, switch-case 블록 전부 제거
-- [x] extractTags(), buildHintGuide() 신규 메서드 추가
-- [x] buildDifficultyContext(), findSimilarProblems() 유지
-- [x] 코드 1,453줄 → 133줄 (-91%)
-
----
-
-#### P5-005: ReviewTemplateGenerator 업데이트
-**상태**: ✅ DONE
-**담당**: fullstack-developer
-**우선순위**: P1
-**의존성**: P5-004
-**완료일**: 2026-02-14
-
-**설명**: 새 ProblemAnalysis 구조에 맞게 업데이트
-
-**산출물**: `src/services/review-template-generator.ts` (119줄, 38% 감소)
-
-**인수 조건**:
-- [x] structureAnalysis() 제거
-- [x] hint_guide 직접 활용
-- [x] ReviewTemplate 타입에 맞게 반환값 변경
-
----
-
-#### P5-006: 테스트 코드 갱신 (problem-analyzer)
-**상태**: ✅ DONE
-**담당**: qa-testing-agent
-**우선순위**: P0
-**의존성**: P5-004
-**완료일**: 2026-02-14
-
-**설명**: 새 구조에 맞게 테스트 전면 재작성
-
-**인수 조건**:
-- [x] tags 필드 검증
-- [x] hint_guide 프롬프트 구조 검증
-- [x] 템플릿 변수 치환 검증
-- [x] 기존 difficulty, similar_problems 테스트 유지
-
----
-
-#### P5-007: 테스트 코드 갱신 (review-template)
-**상태**: ✅ DONE
-**담당**: qa-testing-agent
-**우선순위**: P1
-**의존성**: P5-005
-**완료일**: 2026-02-14
-
-**설명**: ReviewTemplateGenerator 테스트 업데이트
-
-**인수 조건**:
-- [x] 새 ReviewTemplate 구조에 맞게 assertion 변경
-
----
-
-#### P5-008: 정리 및 문서화
-**상태**: ✅ DONE
-**담당**: technical-writer
-**우선순위**: P2
-**의존성**: P5-006, P5-007
-**완료일**: 2026-02-14
-
-**설명**: 미사용 타입 최종 정리, tools-reference.md 등 문서 업데이트
-
-**인수 조건**:
-- [x] 미사용 타입 완전 제거 확인
-- [x] tools-reference.md 출력 스키마 업데이트
-- [x] CLAUDE.md 관련 내용 업데이트
-- [x] tasks.md Phase 5 완료율 업데이트
-
----
-
-### 코드 규모 목표
-
-| 파일 | Before | After | 변화 |
-|------|--------|-------|------|
-| problem-analyzer.ts | 1,453줄 | ~200줄 | -86% |
-| prompts/hint-guide.ts | 0줄 | ~120줄 | 신규 |
-| types/analysis.ts | 141줄 | ~100줄 | -29% |
-| review-template-generator.ts | 240줄 | ~150줄 | -38% |
-| **총계** | ~1,834줄 | ~570줄 | **-69%** |
 
 ---
 
