@@ -77,8 +77,8 @@ export interface HintGuide {
  * 힌트 레벨 가이드
  *
  * - Level 1: 방향 암시 (알고리즘 이름 언급 금지)
- * - Level 2: 핵심 통찰 (알고리즘 명시, 구현은 안 줌)
- * - Level 3: 풀이 전략 (단계별 접근법)
+ * - Level 2: 핵심 아이디어 (알고리즘 명시, 구현은 안 줌)
+ * - Level 3: 상세 풀이 (단계별 접근법)
  */
 export interface HintLevelGuide {
   /** 힌트 레벨 (1, 2, 3) */

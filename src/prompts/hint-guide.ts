@@ -31,7 +31,7 @@ import type { Problem } from '../api/types.js';
  */
 export const HINT_LEVEL_PROMPTS = {
   /**
-   * Level 1: 패턴 인식
+   * Level 1: 문제 분석
    * 알고리즘 이름을 직접 언급하지 않고 구조적 특징만 암시
    */
   level1: `사용자가 백준 {problemId}번 "{problemTitle}" 문제의 레벨 1 힌트를 요청했습니다.
@@ -52,7 +52,7 @@ export const HINT_LEVEL_PROMPTS = {
 - 시간/공간 복잡도 언급`,
 
   /**
-   * Level 2: 핵심 통찰
+   * Level 2: 핵심 아이디어
    * 알고리즘 유형을 명시하고, 핵심 아이디어를 설명
    */
   level2: `사용자가 백준 {problemId}번 "{problemTitle}" 문제의 레벨 2 힌트를 요청했습니다.
@@ -64,7 +64,7 @@ export const HINT_LEVEL_PROMPTS = {
 
 [가이드라인]
 1. 알고리즘 유형({tags})을 명시하세요.
-2. 이 문제만의 핵심 통찰(key insight)을 설명하세요.
+2. 이 문제만의 핵심 아이디어(key insight)을 설명하세요.
 3. "무엇을 해야 하는지"는 알려주되 "어떻게 하는지"는 알려주지 마세요.
 4. 3-5문장으로 작성하세요.
 
@@ -74,7 +74,7 @@ export const HINT_LEVEL_PROMPTS = {
 - 단계별 풀이 절차`,
 
   /**
-   * Level 3: 풀이 전략
+   * Level 3: 상세 풀이
    * 구체적인 단계별 접근법과 주의사항 제시
    */
   level3: `사용자가 백준 {problemId}번 "{problemTitle}" 문제의 레벨 3 힌트를 요청했습니다.
@@ -103,7 +103,7 @@ export const REVIEW_GUIDE_PROMPT = `백준 {problemId}번 "{problemTitle}" ({tie
 아래 순서대로 학생에게 질문하며 복습을 도와주세요:
 
 1. 풀이 접근법: "어떤 알고리즘으로 접근했나요? 왜 그 방법을 선택했나요?"
-2. 핵심 통찰: "이 문제의 핵심 아이디어는 무엇이었나요?"
+2. 핵심 아이디어: "이 문제의 핵심 아이디어는 무엇이었나요?"
 3. 복잡도 분석: "시간/공간 복잡도를 분석해주세요."
 4. 어려웠던 점: "어디서 막혔거나 실수했나요?"
 5. 배운 점: "이 문제를 통해 배운 개념이나 패턴은?"` as const;
@@ -174,17 +174,17 @@ export function buildHintGuide(
   const hintLevels: HintLevelGuide[] = [
     {
       level: 1,
-      label: '패턴 인식',
+      label: '문제 분석',
       prompt: interpolateTemplate(HINT_LEVEL_PROMPTS.level1, vars),
     },
     {
       level: 2,
-      label: '핵심 통찰',
+      label: '핵심 아이디어',
       prompt: interpolateTemplate(HINT_LEVEL_PROMPTS.level2, vars),
     },
     {
       level: 3,
-      label: '풀이 전략',
+      label: '상세 풀이',
       prompt: interpolateTemplate(HINT_LEVEL_PROMPTS.level3, vars),
     },
   ];

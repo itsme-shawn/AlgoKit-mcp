@@ -55,6 +55,13 @@ export function generateHintTool(analyzer: ProblemAnalyzer) {
    "사용자가 '정답', '풀이', '코드' 등 최종 답변 요청"
    → hint_levels[2].prompt로 상세 구현 가이드 제시
 
+📖 **[권장] 어려운 문제는 본문 먼저 확인**:
+   - 난이도 높은 문제(Gold 이상, level ≥ 11)는 메타데이터만으로 부족할 수 있음
+   - fetch_problem_content로 실제 문제 본문 확인 후 힌트 생성 권장
+   - 문제 본문을 보면 더 정확하고 맞춤형 힌트 제공 가능
+   - 예: mcp-cli call algokit/fetch_problem_content '{"problem_id": 1234}'
+   - 본문 확인은 권장사항이며 필수는 아님
+
 **정답 정책**: 힌트만 기본 제공. 사용자가 "정답", "풀이", "코드" 명시 요청 시만 전체 풀이 제공.`,
     inputSchema: GenerateHintInputSchema,
     handler: async (input: GenerateHintInput): Promise<TextContent> => {

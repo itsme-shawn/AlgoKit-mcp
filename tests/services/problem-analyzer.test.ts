@@ -139,38 +139,38 @@ describe('ProblemAnalyzer (프롬프트 기반)', () => {
       expect(analysis.hint_guide.hint_levels.map(h => h.level)).toEqual([1, 2, 3]);
     });
 
-    it('hint_levels[0].level=1, label="패턴 인식"', async () => {
+    it('hint_levels[0].level=1, label="문제 분석"', async () => {
       // When
       const analysis = await analyzer.analyze(11053, false);
 
       // Then
       const level1 = analysis.hint_guide.hint_levels[0];
       expect(level1.level).toBe(1);
-      expect(level1.label).toBe('패턴 인식');
+      expect(level1.label).toBe('문제 분석');
       expect(level1.prompt).toBeTruthy();
       expect(level1.prompt.length).toBeGreaterThan(0);
     });
 
-    it('hint_levels[1].level=2, label="핵심 통찰"', async () => {
+    it('hint_levels[1].level=2, label="핵심 아이디어"', async () => {
       // When
       const analysis = await analyzer.analyze(11053, false);
 
       // Then
       const level2 = analysis.hint_guide.hint_levels[1];
       expect(level2.level).toBe(2);
-      expect(level2.label).toBe('핵심 통찰');
+      expect(level2.label).toBe('핵심 아이디어');
       expect(level2.prompt).toBeTruthy();
       expect(level2.prompt.length).toBeGreaterThan(0);
     });
 
-    it('hint_levels[2].level=3, label="풀이 전략"', async () => {
+    it('hint_levels[2].level=3, label="상세 풀이"', async () => {
       // When
       const analysis = await analyzer.analyze(11053, false);
 
       // Then
       const level3 = analysis.hint_guide.hint_levels[2];
       expect(level3.level).toBe(3);
-      expect(level3.label).toBe('풀이 전략');
+      expect(level3.label).toBe('상세 풀이');
       expect(level3.prompt).toBeTruthy();
       expect(level3.prompt.length).toBeGreaterThan(0);
     });
