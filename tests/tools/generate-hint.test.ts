@@ -117,13 +117,13 @@ describe('generate_hint 도구', () => {
  */
 describe('generate_hint 도구 핸들러', () => {
   let mockAnalyzer: {
-    generateHint: ReturnType<typeof vi.fn>;
+    analyze: ReturnType<typeof vi.fn>;
   };
   let tool: ReturnType<typeof generateHintTool>;
 
   beforeEach(() => {
     mockAnalyzer = {
-      generateHint: vi.fn(),
+      analyze: vi.fn(),
     };
     tool = generateHintTool(mockAnalyzer as unknown as ProblemAnalyzer);
   });
@@ -164,7 +164,7 @@ describe('generate_hint 도구 핸들러', () => {
         },
       },
     };
-    mockAnalyzer.generateHint.mockResolvedValue(mockHintResult);
+    mockAnalyzer.analyze.mockResolvedValue(mockHintResult);
 
     // When
     const result = await tool.handler({ problem_id: 1927 });
@@ -177,12 +177,12 @@ describe('generate_hint 도구 핸들러', () => {
     expect(hintResult).toHaveProperty('tags');
     expect(hintResult).toHaveProperty('hint_guide');
     expect(hintResult).not.toHaveProperty('similar_problems');
-    expect(mockAnalyzer.generateHint).toHaveBeenCalledWith(1927);
+    expect(mockAnalyzer.analyze).toHaveBeenCalledWith(1927, false);
   });
 
   it('존재하지 않는 문제 (404)', async () => {
     // Given
-    mockAnalyzer.generateHint.mockRejectedValue(new ProblemNotFoundError(999999));
+    mockAnalyzer.analyze.mockRejectedValue(new ProblemNotFoundError(999999));
 
     // When & Then
     await expect(tool.handler({ problem_id: 999999 }))
@@ -198,7 +198,7 @@ describe('generate_hint 도구 핸들러', () => {
   it('일반 에러 전파', async () => {
     // Given
     const genericError = new Error('Unexpected error');
-    mockAnalyzer.generateHint.mockRejectedValue(genericError);
+    mockAnalyzer.analyze.mockRejectedValue(genericError);
 
     // When & Then
     await expect(tool.handler({ problem_id: 1927 }))
@@ -217,7 +217,7 @@ describe('generate_hint 도구 핸들러', () => {
         review_prompts: {},
       },
     };
-    mockAnalyzer.generateHint.mockResolvedValue(mockHintResult);
+    mockAnalyzer.analyze.mockResolvedValue(mockHintResult);
 
     // When
     const result = await tool.handler({ problem_id: 1927 });
@@ -253,7 +253,7 @@ describe('generate_hint 도구 핸들러', () => {
         },
       },
     };
-    mockAnalyzer.generateHint.mockResolvedValue(mockHintResult);
+    mockAnalyzer.analyze.mockResolvedValue(mockHintResult);
 
     // When
     const result = await tool.handler({ problem_id: 1927 });
