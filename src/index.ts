@@ -31,26 +31,30 @@ import {
   searchTags,
   SearchTagsInputSchema,
 } from './tools/search-tags.js';
+
+// BOJ 도구
 import {
-  analyzeProblemTool,
-  AnalyzeProblemInputSchema,
-} from './tools/analyze-problem.js';
+  analyzeProblemBOJTool,
+  AnalyzeProblemBOJInputSchema,
+} from './tools/analyze-problem-boj.js';
 import {
-  generateReviewTemplateTool,
-  GenerateReviewTemplateInputSchema,
-} from './tools/generate-review-template.js';
+  generateReviewTemplateBOJTool,
+  GenerateReviewTemplateBOJInputSchema,
+} from './tools/generate-review-template-boj.js';
 import {
-  generateHintTool,
-  GenerateHintInputSchema,
-} from './tools/generate-hint.js';
+  generateHintBOJTool,
+  GenerateHintBOJInputSchema,
+} from './tools/generate-hint-boj.js';
 import {
-  fetchProblemContentTool,
-  FetchProblemContentInputSchema,
-} from './tools/fetch-problem-content.js';
+  fetchProblemContentBOJTool,
+  FetchProblemContentBOJInputSchema,
+} from './tools/fetch-problem-content-boj.js';
 import {
-  analyzeCodeSubmissionTool,
-  AnalyzeCodeSubmissionInputSchema,
-} from './tools/analyze-code-submission.js';
+  analyzeCodeSubmissionBOJTool,
+  AnalyzeCodeSubmissionBOJInputSchema,
+} from './tools/analyze-code-submission-boj.js';
+
+// Programmers 도구
 import {
   searchProgrammersProblemsTool,
   SearchProgrammersProblemsInputSchema,
@@ -60,10 +64,35 @@ import {
   GetProgrammersProblemInputSchema,
 } from './tools/get-programmers-problem.js';
 
+// Programmers 학습 도구
+import {
+  analyzeProblemProgrammersTool,
+  AnalyzeProblemProgrammersInputSchema,
+} from './tools/analyze-problem-programmers.js';
+import {
+  generateHintProgrammersTool,
+  GenerateHintProgrammersInputSchema,
+} from './tools/generate-hint-programmers.js';
+import {
+  generateReviewTemplateProgrammersTool,
+  GenerateReviewTemplateProgrammersInputSchema,
+} from './tools/generate-review-template-programmers.js';
+import {
+  analyzeCodeSubmissionProgrammersTool,
+  AnalyzeCodeSubmissionProgrammersInputSchema,
+} from './tools/analyze-code-submission-programmers.js';
+import {
+  fetchProblemContentProgrammersTool,
+  FetchProblemContentProgrammersInputSchema,
+} from './tools/fetch-problem-content-programmers.js';
+
 // 서비스 임포트
 import { SolvedAcClient } from './api/solvedac-client.js';
 import { ProblemAnalyzer } from './services/problem-analyzer.js';
 import { ReviewTemplateGenerator } from './services/review-template-generator.js';
+import { ProgrammersScraper } from './api/programmers-scraper.js';
+import { ProgrammersProblemAnalyzer } from './services/programmers-problem-analyzer.js';
+import { ProgrammersReviewTemplateGenerator } from './services/programmers-review-template-generator.js';
 
 /**
  * 서비스 초기화
@@ -72,14 +101,28 @@ const apiClient = new SolvedAcClient();
 const problemAnalyzer = new ProblemAnalyzer(apiClient);
 const reviewTemplateGenerator = new ReviewTemplateGenerator(problemAnalyzer);
 
-// 도구 객체 생성
-const analyzeProblemToolObj = analyzeProblemTool(problemAnalyzer);
-const generateReviewTemplateToolObj = generateReviewTemplateTool(reviewTemplateGenerator);
-const generateHintToolObj = generateHintTool(problemAnalyzer);
-const fetchProblemContentToolObj = fetchProblemContentTool();
-const analyzeCodeSubmissionToolObj = analyzeCodeSubmissionTool();
+// Programmers 서비스 초기화
+const programmersScraper = new ProgrammersScraper();
+const programmersProblemAnalyzer = new ProgrammersProblemAnalyzer(programmersScraper);
+const programmersReviewTemplateGenerator = new ProgrammersReviewTemplateGenerator(programmersProblemAnalyzer);
+
+// BOJ 도구 객체 생성
+const analyzeProblemBOJToolObj = analyzeProblemBOJTool(problemAnalyzer);
+const generateReviewTemplateBOJToolObj = generateReviewTemplateBOJTool(reviewTemplateGenerator);
+const generateHintBOJToolObj = generateHintBOJTool(problemAnalyzer);
+const fetchProblemContentBOJToolObj = fetchProblemContentBOJTool();
+const analyzeCodeSubmissionBOJToolObj = analyzeCodeSubmissionBOJTool();
+
+// Programmers 도구 객체 생성
 const searchProgrammersProblemsToolObj = searchProgrammersProblemsTool();
 const getProgrammersProblemToolObj = getProgrammersProblemTool();
+
+// Programmers 도구 객체 생성 (DI)
+const analyzeProblemProgrammersToolObj = analyzeProblemProgrammersTool(programmersProblemAnalyzer);
+const generateHintProgrammersToolObj = generateHintProgrammersTool(programmersProblemAnalyzer);
+const generateReviewTemplateProgrammersToolObj = generateReviewTemplateProgrammersTool(programmersReviewTemplateGenerator);
+const analyzeCodeSubmissionProgrammersToolObj = analyzeCodeSubmissionProgrammersTool(programmersScraper);
+const fetchProblemContentProgrammersToolObj = fetchProblemContentProgrammersTool(programmersScraper);
 
 /**
  * MCP 서버 초기화
@@ -103,6 +146,7 @@ const server = new Server(
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
+      // 기존 BOJ 도구 (이름 유지)
       {
         name: 'search_problems',
         description:
@@ -125,35 +169,35 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           '예: "다이나믹", "그래프", "이분 탐색" 등',
         inputSchema: zodToJsonSchema(SearchTagsInputSchema as any) as any,
       },
+
+      // BOJ 분리 도구
       {
-        name: 'analyze_problem',
-        description:
-          'BOJ 문제를 분석하고 힌트 생성 가이드를 제공합니다. ' +
-          '난이도 컨텍스트, 태그 정보, 3단계 힌트 가이드 프롬프트, 유사 문제 추천을 포함합니다.',
-        inputSchema: zodToJsonSchema(AnalyzeProblemInputSchema as any) as any,
+        name: 'analyze_problem_boj',
+        description: analyzeProblemBOJToolObj.description,
+        inputSchema: zodToJsonSchema(AnalyzeProblemBOJInputSchema as any) as any,
       },
       {
-        name: 'generate_review_template',
-        description:
-          'BOJ 문제 복습을 위한 마크다운 템플릿과 가이드 프롬프트를 생성합니다. ' +
-          '템플릿을 기반으로 대화형으로 복습 문서를 작성할 수 있습니다.',
-        inputSchema: zodToJsonSchema(GenerateReviewTemplateInputSchema as any) as any,
+        name: 'generate_hint_boj',
+        description: generateHintBOJToolObj.description,
+        inputSchema: zodToJsonSchema(GenerateHintBOJInputSchema as any) as any,
       },
       {
-        name: 'generate_hint',
-        description: generateHintToolObj.description,
-        inputSchema: zodToJsonSchema(GenerateHintInputSchema as any) as any,
+        name: 'generate_review_template_boj',
+        description: generateReviewTemplateBOJToolObj.description,
+        inputSchema: zodToJsonSchema(GenerateReviewTemplateBOJInputSchema as any) as any,
       },
       {
-        name: 'fetch_problem_content',
-        description: fetchProblemContentToolObj.description,
-        inputSchema: zodToJsonSchema(FetchProblemContentInputSchema as any) as any,
+        name: 'fetch_problem_content_boj',
+        description: fetchProblemContentBOJToolObj.description,
+        inputSchema: zodToJsonSchema(FetchProblemContentBOJInputSchema as any) as any,
       },
       {
-        name: 'analyze_code_submission',
-        description: analyzeCodeSubmissionToolObj.description,
-        inputSchema: zodToJsonSchema(AnalyzeCodeSubmissionInputSchema as any) as any,
+        name: 'analyze_code_submission_boj',
+        description: analyzeCodeSubmissionBOJToolObj.description,
+        inputSchema: zodToJsonSchema(AnalyzeCodeSubmissionBOJInputSchema as any) as any,
       },
+
+      // Programmers 기존 도구
       {
         name: 'search_programmers_problems',
         description: searchProgrammersProblemsToolObj.description,
@@ -164,6 +208,35 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         description: getProgrammersProblemToolObj.description,
         inputSchema: zodToJsonSchema(GetProgrammersProblemInputSchema as any) as any,
       },
+
+      // Programmers 학습 도구
+      {
+        name: 'analyze_problem_programmers',
+        description: analyzeProblemProgrammersToolObj.description,
+        inputSchema: zodToJsonSchema(AnalyzeProblemProgrammersInputSchema as any) as any,
+      },
+      {
+        name: 'generate_hint_programmers',
+        description: generateHintProgrammersToolObj.description,
+        inputSchema: zodToJsonSchema(GenerateHintProgrammersInputSchema as any) as any,
+      },
+      {
+        name: 'generate_review_template_programmers',
+        description: generateReviewTemplateProgrammersToolObj.description,
+        inputSchema: zodToJsonSchema(GenerateReviewTemplateProgrammersInputSchema as any) as any,
+      },
+      {
+        name: 'analyze_code_submission_programmers',
+        description: analyzeCodeSubmissionProgrammersToolObj.description,
+        inputSchema: zodToJsonSchema(AnalyzeCodeSubmissionProgrammersInputSchema as any) as any,
+      },
+      {
+        name: 'fetch_problem_content_programmers',
+        description: fetchProblemContentProgrammersToolObj.description,
+        inputSchema: zodToJsonSchema(FetchProblemContentProgrammersInputSchema as any) as any,
+      },
+
+      // Health check
       {
         name: 'health_check',
         description: 'MCP 서버 상태 확인',
@@ -407,6 +480,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   try {
     switch (name) {
+      // 기존 BOJ 도구 (이름 유지)
       case 'search_problems': {
         const input = SearchProblemsInputSchema.parse(args);
         const result = await searchProblems(input);
@@ -446,46 +520,48 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
-      case 'analyze_problem': {
-        const input = AnalyzeProblemInputSchema.parse(args);
-        const result = await analyzeProblemToolObj.handler(input);
+      // BOJ 분리 도구
+      case 'analyze_problem_boj': {
+        const input = AnalyzeProblemBOJInputSchema.parse(args);
+        const result = await analyzeProblemBOJToolObj.handler(input);
         return {
           content: [result],
         };
       }
 
-      case 'generate_review_template': {
-        const input = GenerateReviewTemplateInputSchema.parse(args);
-        const result = await generateReviewTemplateToolObj.handler(input);
+      case 'generate_hint_boj': {
+        const input = GenerateHintBOJInputSchema.parse(args);
+        const result = await generateHintBOJToolObj.handler(input);
         return {
           content: [result],
         };
       }
 
-      case 'generate_hint': {
-        const input = GenerateHintInputSchema.parse(args);
-        const result = await generateHintToolObj.handler(input);
+      case 'generate_review_template_boj': {
+        const input = GenerateReviewTemplateBOJInputSchema.parse(args);
+        const result = await generateReviewTemplateBOJToolObj.handler(input);
         return {
           content: [result],
         };
       }
 
-      case 'fetch_problem_content': {
-        const input = FetchProblemContentInputSchema.parse(args);
-        const result = await fetchProblemContentToolObj.handler(input);
+      case 'fetch_problem_content_boj': {
+        const input = FetchProblemContentBOJInputSchema.parse(args);
+        const result = await fetchProblemContentBOJToolObj.handler(input);
         return {
           content: [result],
         };
       }
 
-      case 'analyze_code_submission': {
-        const input = AnalyzeCodeSubmissionInputSchema.parse(args);
-        const result = await analyzeCodeSubmissionToolObj.handler(input);
+      case 'analyze_code_submission_boj': {
+        const input = AnalyzeCodeSubmissionBOJInputSchema.parse(args);
+        const result = await analyzeCodeSubmissionBOJToolObj.handler(input);
         return {
           content: [result],
         };
       }
 
+      // Programmers 기존 도구
       case 'search_programmers_problems': {
         const input = SearchProgrammersProblemsInputSchema.parse(args);
         const result = await searchProgrammersProblemsToolObj.handler(input);
@@ -502,6 +578,48 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
+      // Programmers 학습 도구
+      case 'analyze_problem_programmers': {
+        const input = AnalyzeProblemProgrammersInputSchema.parse(args);
+        const result = await analyzeProblemProgrammersToolObj.handler(input);
+        return {
+          content: [result],
+        };
+      }
+
+      case 'generate_hint_programmers': {
+        const input = GenerateHintProgrammersInputSchema.parse(args);
+        const result = await generateHintProgrammersToolObj.handler(input);
+        return {
+          content: [result],
+        };
+      }
+
+      case 'generate_review_template_programmers': {
+        const input = GenerateReviewTemplateProgrammersInputSchema.parse(args);
+        const result = await generateReviewTemplateProgrammersToolObj.handler(input);
+        return {
+          content: [result],
+        };
+      }
+
+      case 'analyze_code_submission_programmers': {
+        const input = AnalyzeCodeSubmissionProgrammersInputSchema.parse(args);
+        const result = await analyzeCodeSubmissionProgrammersToolObj.handler(input);
+        return {
+          content: [result],
+        };
+      }
+
+      case 'fetch_problem_content_programmers': {
+        const input = FetchProblemContentProgrammersInputSchema.parse(args);
+        const result = await fetchProblemContentProgrammersToolObj.handler(input);
+        return {
+          content: [result],
+        };
+      }
+
+      // Health check
       case 'health_check': {
         return {
           content: [
@@ -517,13 +635,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     'search_problems',
                     'get_problem',
                     'search_tags',
-                    'analyze_problem',
-                    'generate_review_template',
-                    'generate_hint',
-                    'fetch_problem_content',
-                    'analyze_code_submission',
+                    'analyze_problem_boj',
+                    'generate_hint_boj',
+                    'generate_review_template_boj',
+                    'fetch_problem_content_boj',
+                    'analyze_code_submission_boj',
                     'search_programmers_problems',
                     'get_programmers_problem',
+                    'analyze_problem_programmers',
+                    'generate_hint_programmers',
+                    'generate_review_template_programmers',
+                    'analyze_code_submission_programmers',
+                    'fetch_problem_content_programmers',
                     'health_check'
                   ],
                 },

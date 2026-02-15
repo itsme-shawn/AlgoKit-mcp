@@ -1,18 +1,18 @@
 /**
- * analyze_code_submission MCP 도구
+ * analyze_code_submission_boj MCP 도구
  *
- * Phase 6 - P6-006: 사용자 코드 분석 MCP 도구 구현
+ * Phase 6 - P6-006: BOJ 사용자 코드 분석 MCP 도구 구현
  */
 
 import { z } from 'zod';
 import type { CodeAnalysisResult, SupportedLanguage, AnalysisType } from '../types/problem-content.js';
-import { handleFetchProblemContent } from './fetch-problem-content.js';
+import { handleFetchProblemContentBOJ } from './fetch-problem-content-boj.js';
 import { CodeAnalyzer } from '../services/code-analyzer.js';
 
 /**
  * 입력 스키마
  */
-export const AnalyzeCodeSubmissionInputSchema = z.object({
+export const AnalyzeCodeSubmissionBOJInputSchema = z.object({
   problem_id: z.number().int().positive()
     .describe('백준 문제 번호'),
   code: z.string().min(1)
@@ -23,7 +23,7 @@ export const AnalyzeCodeSubmissionInputSchema = z.object({
     .describe('분석 타입 (기본값: full)'),
 });
 
-export type AnalyzeCodeSubmissionInput = z.infer<typeof AnalyzeCodeSubmissionInputSchema>;
+export type AnalyzeCodeSubmissionBOJInput = z.infer<typeof AnalyzeCodeSubmissionBOJInputSchema>;
 
 /**
  * MCP TextContent 타입
@@ -34,19 +34,19 @@ interface TextContent {
 }
 
 /**
- * analyze_code_submission 도구 핸들러
+ * analyze_code_submission_boj 도구 핸들러
  *
  * @param args - 입력 인자 (problem_id, code, language, analysis_type)
  * @returns CodeAnalysisResult JSON 문자열
  * @throws {Error} 검증 실패, 스크래핑 실패, 파싱 실패, 분석 실패 시
  */
-export async function handleAnalyzeCodeSubmission(args: unknown): Promise<TextContent> {
+export async function handleAnalyzeCodeSubmissionBOJ(args: unknown): Promise<TextContent> {
   try {
     // 1. 입력 검증
-    const { problem_id, code, language, analysis_type } = AnalyzeCodeSubmissionInputSchema.parse(args);
+    const { problem_id, code, language, analysis_type } = AnalyzeCodeSubmissionBOJInputSchema.parse(args);
 
-    // 2. 문제 본문 스크래핑 (fetch_problem_content 재사용)
-    const problemContentResponse = await handleFetchProblemContent({ problem_id });
+    // 2. 문제 본문 스크래핑 (fetch_problem_content_boj 재사용)
+    const problemContentResponse = await handleFetchProblemContentBOJ({ problem_id });
     const problemContent = JSON.parse(problemContentResponse.text);
 
     // 3. CodeSubmission 객체 생성
@@ -76,7 +76,7 @@ export async function handleAnalyzeCodeSubmission(args: unknown): Promise<TextCo
       throw new Error(`입력 검증 실패: ${error.issues[0].message}`);
     }
 
-    // 기타 에러 (스크래핑/파싱 에러는 handleFetchProblemContent에서 처리됨)
+    // 기타 에러 (스크래핑/파싱 에러는 handleFetchProblemContentBOJ에서 처리됨)
     throw error;
   }
 }
@@ -84,10 +84,10 @@ export async function handleAnalyzeCodeSubmission(args: unknown): Promise<TextCo
 /**
  * MCP 도구 정의
  */
-export function analyzeCodeSubmissionTool() {
+export function analyzeCodeSubmissionBOJTool() {
   return {
-    name: 'analyze_code_submission',
-    description: `백준 문제에 대한 사용자 코드를 분석하여 피드백을 제공합니다.
+    name: 'analyze_code_submission_boj',
+    description: `백준(BOJ) 문제에 대한 사용자 코드를 분석하여 피드백을 제공합니다.
 
 문제 본문과 사용자 코드를 결합하여 LLM 분석용 프롬프트를 생성합니다.
 
@@ -105,7 +105,7 @@ export function analyzeCodeSubmissionTool() {
 - 코드 리뷰 및 품질 개선
 
 **지원 언어**: Python, C++, JavaScript, Java, Go`,
-    inputSchema: AnalyzeCodeSubmissionInputSchema,
-    handler: handleAnalyzeCodeSubmission,
+    inputSchema: AnalyzeCodeSubmissionBOJInputSchema,
+    handler: handleAnalyzeCodeSubmissionBOJ,
   };
 }

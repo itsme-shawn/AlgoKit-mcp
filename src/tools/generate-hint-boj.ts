@@ -1,7 +1,7 @@
 /**
- * generate-hint MCP 도구
+ * generate_hint_boj MCP 도구
  *
- * 백준 문제 힌트 가이드 생성 (SRP: 힌트만)
+ * BOJ 문제 힌트 가이드 생성 (SRP: 힌트만)
  */
 
 import { z } from 'zod';
@@ -11,12 +11,12 @@ import { ProblemNotFoundError } from '../api/types.js';
 /**
  * 입력 스키마
  */
-export const GenerateHintInputSchema = z.object({
+export const GenerateHintBOJInputSchema = z.object({
   problem_id: z.number().int().positive()
     .describe('백준 문제 번호'),
 });
 
-export type GenerateHintInput = z.infer<typeof GenerateHintInputSchema>;
+export type GenerateHintBOJInput = z.infer<typeof GenerateHintBOJInputSchema>;
 
 /**
  * MCP TextContent 타입
@@ -29,10 +29,10 @@ interface TextContent {
 /**
  * generate-hint 도구 핸들러
  */
-export function generateHintTool(analyzer: ProblemAnalyzer) {
+export function generateHintBOJTool(analyzer: ProblemAnalyzer) {
   return {
-    name: 'generate_hint',
-    description: `백준 문제 힌트 생성. 3단계 가이드 프롬프트 제공.
+    name: 'generate_hint_boj',
+    description: `백준(BOJ) 문제 힌트 생성. 3단계 가이드 프롬프트 제공.
 
 🎯 **핵심: 한 번에 1개 레벨 힌트만 제공. 1,2,3 단계를 동시에 제시하지 마세요.**
 
@@ -63,11 +63,11 @@ export function generateHintTool(analyzer: ProblemAnalyzer) {
    - 본문 확인은 권장사항이며 필수는 아님
 
 **정답 정책**: 힌트만 기본 제공. 사용자가 "정답", "풀이", "코드" 명시 요청 시만 전체 풀이 제공.`,
-    inputSchema: GenerateHintInputSchema,
-    handler: async (input: GenerateHintInput): Promise<TextContent> => {
+    inputSchema: GenerateHintBOJInputSchema,
+    handler: async (input: GenerateHintBOJInput): Promise<TextContent> => {
       try {
         // 입력 검증
-        const { problem_id } = GenerateHintInputSchema.parse(input);
+        const { problem_id } = GenerateHintBOJInputSchema.parse(input);
 
         // 힌트 가이드 생성 (유사 문제 제외)
         const result = await analyzer.analyze(problem_id, false);
@@ -85,7 +85,7 @@ export function generateHintTool(analyzer: ProblemAnalyzer) {
 
         // ProblemNotFoundError
         if (error instanceof ProblemNotFoundError) {
-          throw new Error(`문제를 찾을 수 없습니다: ${(input as GenerateHintInput).problem_id}번`);
+          throw new Error(`문제를 찾을 수 없습니다: ${(input as GenerateHintBOJInput).problem_id}번`);
         }
 
         // 기타 에러

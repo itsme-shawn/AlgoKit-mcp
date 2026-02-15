@@ -9,6 +9,7 @@
  */
 
 import type { Problem } from '../api/types.js';
+import type { ProgrammersProblemDetail } from './programmers.js';
 
 /**
  * 문제 분석 결과
@@ -152,4 +153,76 @@ export interface ProblemData {
     acceptedUserCount: number;
     averageTries: number;
   };
+}
+
+// ============================================================
+// 프로그래머스 전용 타입
+// ============================================================
+
+/**
+ * 프로그래머스 문제 분석 결과
+ */
+export interface ProgrammersProblemAnalysis {
+  /** 프로그래머스 문제 상세 데이터 */
+  problem: ProgrammersProblemDetail;
+  /** 난이도 컨텍스트 */
+  difficulty: ProgrammersDifficultyContext;
+  /** 유사 문제 목록 (항상 빈 배열 — Programmers API 없음) */
+  similar_problems: never[];
+  /** Claude Code를 위한 힌트 생성 가이드 */
+  hint_guide: HintGuide;
+}
+
+/**
+ * 프로그래머스 난이도 컨텍스트
+ */
+export interface ProgrammersDifficultyContext {
+  /** 레벨 라벨 (예: "Lv. 2") */
+  levelLabel: string;
+  /** 레벨 숫자 (0-5) */
+  level: number;
+  /** 레벨 이모지 */
+  emoji: string;
+  /** 난이도 설명 (예: "중급") */
+  description: string;
+  /** 컨텍스트 요약 */
+  context: string;
+}
+
+/**
+ * 프로그래머스 복습 템플릿
+ */
+export interface ProgrammersReviewTemplate {
+  /** 마크다운 형식의 복습 템플릿 */
+  template: string;
+  /** 문제 요약 데이터 */
+  problem_data: ProgrammersProblemData;
+  /** 유사 문제 목록 (항상 빈 배열) */
+  related_problems: never[];
+  /** 힌트 가이드 */
+  hint_guide: HintGuide;
+  /** 상세 가이드라인 MCP Resource URI */
+  guideline_uri: string;
+  /** 가이드라인 요약 */
+  guideline_summary: GuidelineSummary;
+  /** 권장 파일명 */
+  suggested_filename: string;
+}
+
+/**
+ * 프로그래머스 문제 데이터 (요약)
+ */
+export interface ProgrammersProblemData {
+  /** 문제 ID (문자열) */
+  id: string;
+  /** 문제 제목 */
+  title: string;
+  /** 레벨 숫자 (0-5) */
+  level: number;
+  /** 레벨 라벨 (예: "Lv. 2") */
+  levelLabel: string;
+  /** 카테고리 */
+  category: string;
+  /** 태그 목록 */
+  tags: string[];
 }
