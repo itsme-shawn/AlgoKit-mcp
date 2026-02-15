@@ -1,5 +1,5 @@
 /**
- * generate_review_template 도구 테스트 (Keyless Architecture)
+ * generate_review_template_boj 도구 테스트 (Keyless Architecture)
  *
  * 테스트 범위:
  * - Happy Path
@@ -9,11 +9,11 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { GenerateReviewTemplateInputSchema, generateReviewTemplateTool } from '../../src/tools/generate-review-template.js';
+import { GenerateReviewTemplateBOJInputSchema, generateReviewTemplateBOJTool } from '../../src/tools/generate-review-template-boj.js';
 import type { ReviewTemplateGenerator } from '../../src/services/review-template-generator.js';
 import { ProblemNotFoundError } from '../../src/api/types.js';
 
-describe('generate_review_template 도구 (Keyless)', () => {
+describe('generate_review_template_boj 도구 (Keyless)', () => {
   describe('TC-KL-4.3~4.4: Zod 스키마 검증', () => {
     it('TC-KL-4.3: problem_id 양수 검증', () => {
       // Given: 유효한 입력
@@ -22,7 +22,7 @@ describe('generate_review_template 도구 (Keyless)', () => {
       };
 
       // When
-      const result = GenerateReviewTemplateInputSchema.safeParse(validInput);
+      const result = GenerateReviewTemplateBOJInputSchema.safeParse(validInput);
 
       // Then
       expect(result.success).toBe(true);
@@ -38,7 +38,7 @@ describe('generate_review_template 도구 (Keyless)', () => {
       };
 
       // When
-      const result = GenerateReviewTemplateInputSchema.safeParse(invalidInput);
+      const result = GenerateReviewTemplateBOJInputSchema.safeParse(invalidInput);
 
       // Then
       expect(result.success).toBe(false);
@@ -51,7 +51,7 @@ describe('generate_review_template 도구 (Keyless)', () => {
       };
 
       // When
-      const result = GenerateReviewTemplateInputSchema.safeParse(invalidInput);
+      const result = GenerateReviewTemplateBOJInputSchema.safeParse(invalidInput);
 
       // Then
       expect(result.success).toBe(false);
@@ -65,7 +65,7 @@ describe('generate_review_template 도구 (Keyless)', () => {
       };
 
       // When
-      const result = GenerateReviewTemplateInputSchema.safeParse(validInput);
+      const result = GenerateReviewTemplateBOJInputSchema.safeParse(validInput);
 
       // Then
       expect(result.success).toBe(true);
@@ -81,7 +81,7 @@ describe('generate_review_template 도구 (Keyless)', () => {
       };
 
       // When
-      const result = GenerateReviewTemplateInputSchema.safeParse(validInput);
+      const result = GenerateReviewTemplateBOJInputSchema.safeParse(validInput);
 
       // Then
       expect(result.success).toBe(true);
@@ -98,7 +98,7 @@ describe('generate_review_template 도구 (Keyless)', () => {
       };
 
       // When
-      const result = GenerateReviewTemplateInputSchema.safeParse(invalidInput);
+      const result = GenerateReviewTemplateBOJInputSchema.safeParse(invalidInput);
 
       // Then
       expect(result.success).toBe(false);
@@ -113,7 +113,7 @@ describe('generate_review_template 도구 (Keyless)', () => {
       };
 
       // When
-      const result = GenerateReviewTemplateInputSchema.safeParse(invalidInput);
+      const result = GenerateReviewTemplateBOJInputSchema.safeParse(invalidInput);
 
       // Then
       expect(result.success).toBe(false);
@@ -126,7 +126,7 @@ describe('generate_review_template 도구 (Keyless)', () => {
       };
 
       // When
-      const result = GenerateReviewTemplateInputSchema.safeParse(invalidInput);
+      const result = GenerateReviewTemplateBOJInputSchema.safeParse(invalidInput);
 
       // Then
       expect(result.success).toBe(false);
@@ -139,7 +139,7 @@ describe('generate_review_template 도구 (Keyless)', () => {
       };
 
       // When
-      const result = GenerateReviewTemplateInputSchema.safeParse(invalidInput);
+      const result = GenerateReviewTemplateBOJInputSchema.safeParse(invalidInput);
 
       // Then
       expect(result.success).toBe(false);
@@ -154,7 +154,7 @@ describe('generate_review_template 도구 (Keyless)', () => {
       };
 
       // When
-      const result = GenerateReviewTemplateInputSchema.safeParse(inputWithExtra);
+      const result = GenerateReviewTemplateBOJInputSchema.safeParse(inputWithExtra);
 
       // Then
       expect(result.success).toBe(true);
@@ -168,17 +168,17 @@ describe('generate_review_template 도구 (Keyless)', () => {
 /**
  * 통합 테스트
  */
-describe('generate_review_template 도구 핸들러', () => {
+describe('generate_review_template_boj 도구 핸들러', () => {
   let mockGenerator: {
     generate: ReturnType<typeof vi.fn>;
   };
-  let tool: ReturnType<typeof generateReviewTemplateTool>;
+  let tool: ReturnType<typeof generateReviewTemplateBOJTool>;
 
   beforeEach(() => {
     mockGenerator = {
       generate: vi.fn(),
     };
-    tool = generateReviewTemplateTool(mockGenerator as unknown as ReviewTemplateGenerator);
+    tool = generateReviewTemplateBOJTool(mockGenerator as unknown as ReviewTemplateGenerator);
   });
 
   // TC-KL-4.1~4.2: Happy Path

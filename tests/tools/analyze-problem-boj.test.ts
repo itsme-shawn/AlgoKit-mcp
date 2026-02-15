@@ -1,5 +1,5 @@
 /**
- * analyze_problem 도구 테스트 (Keyless Architecture)
+ * analyze_problem_boj 도구 테스트 (Keyless Architecture)
  *
  * 테스트 범위:
  * - Happy Path
@@ -9,11 +9,11 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { AnalyzeProblemInputSchema, analyzeProblemTool } from '../../src/tools/analyze-problem.js';
+import { AnalyzeProblemBOJInputSchema, analyzeProblemBOJTool } from '../../src/tools/analyze-problem-boj.js';
 import type { ProblemAnalyzer } from '../../src/services/problem-analyzer.js';
 import { ProblemNotFoundError } from '../../src/api/types.js';
 
-describe('analyze_problem 도구 (Keyless)', () => {
+describe('analyze_problem_boj 도구 (Keyless)', () => {
   describe('TC-KL-3.3~3.5: Zod 스키마 검증', () => {
     it('TC-KL-3.3: problem_id 양수 검증', () => {
       // Given: 유효한 입력
@@ -23,7 +23,7 @@ describe('analyze_problem 도구 (Keyless)', () => {
       };
 
       // When
-      const result = AnalyzeProblemInputSchema.safeParse(validInput);
+      const result = AnalyzeProblemBOJInputSchema.safeParse(validInput);
 
       // Then
       expect(result.success).toBe(true);
@@ -40,7 +40,7 @@ describe('analyze_problem 도구 (Keyless)', () => {
       };
 
       // When
-      const result = AnalyzeProblemInputSchema.safeParse(invalidInput);
+      const result = AnalyzeProblemBOJInputSchema.safeParse(invalidInput);
 
       // Then
       expect(result.success).toBe(false);
@@ -53,7 +53,7 @@ describe('analyze_problem 도구 (Keyless)', () => {
       };
 
       // When
-      const result = AnalyzeProblemInputSchema.safeParse(invalidInput);
+      const result = AnalyzeProblemBOJInputSchema.safeParse(invalidInput);
 
       // Then
       expect(result.success).toBe(false);
@@ -66,7 +66,7 @@ describe('analyze_problem 도구 (Keyless)', () => {
       };
 
       // When
-      const result = AnalyzeProblemInputSchema.safeParse(invalidInput);
+      const result = AnalyzeProblemBOJInputSchema.safeParse(invalidInput);
 
       // Then
       expect(result.success).toBe(false);
@@ -80,7 +80,7 @@ describe('analyze_problem 도구 (Keyless)', () => {
       };
 
       // When
-      const result = AnalyzeProblemInputSchema.safeParse(invalidInput);
+      const result = AnalyzeProblemBOJInputSchema.safeParse(invalidInput);
 
       // Then
       expect(result.success).toBe(false);
@@ -93,7 +93,7 @@ describe('analyze_problem 도구 (Keyless)', () => {
       };
 
       // When
-      const result = AnalyzeProblemInputSchema.safeParse(input);
+      const result = AnalyzeProblemBOJInputSchema.safeParse(input);
 
       // Then
       expect(result.success).toBe(true);
@@ -111,7 +111,7 @@ describe('analyze_problem 도구 (Keyless)', () => {
       };
 
       // When
-      const result = AnalyzeProblemInputSchema.safeParse(invalidInput);
+      const result = AnalyzeProblemBOJInputSchema.safeParse(invalidInput);
 
       // Then
       expect(result.success).toBe(false);
@@ -124,7 +124,7 @@ describe('analyze_problem 도구 (Keyless)', () => {
       };
 
       // When
-      const result = AnalyzeProblemInputSchema.safeParse(invalidInput);
+      const result = AnalyzeProblemBOJInputSchema.safeParse(invalidInput);
 
       // Then
       expect(result.success).toBe(false);
@@ -139,7 +139,7 @@ describe('analyze_problem 도구 (Keyless)', () => {
       };
 
       // When
-      const result = AnalyzeProblemInputSchema.safeParse(inputWithExtra);
+      const result = AnalyzeProblemBOJInputSchema.safeParse(inputWithExtra);
 
       // Then
       expect(result.success).toBe(true);
@@ -153,17 +153,17 @@ describe('analyze_problem 도구 (Keyless)', () => {
 /**
  * 통합 테스트
  */
-describe('analyze_problem 도구 핸들러', () => {
+describe('analyze_problem_boj 도구 핸들러', () => {
   let mockAnalyzer: {
     analyze: ReturnType<typeof vi.fn>;
   };
-  let tool: ReturnType<typeof analyzeProblemTool>;
+  let tool: ReturnType<typeof analyzeProblemBOJTool>;
 
   beforeEach(() => {
     mockAnalyzer = {
       analyze: vi.fn(),
     };
-    tool = analyzeProblemTool(mockAnalyzer as unknown as ProblemAnalyzer);
+    tool = analyzeProblemBOJTool(mockAnalyzer as unknown as ProblemAnalyzer);
   });
 
   // TC-KL-3.1~3.2: Happy Path

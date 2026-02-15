@@ -6,10 +6,10 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
-  handleFetchProblemContent,
-  FetchProblemContentInputSchema,
-  fetchProblemContentTool,
-} from '../../src/tools/fetch-problem-content.js';
+  handleFetchProblemContentBOJ,
+  FetchProblemContentBOJInputSchema,
+  fetchProblemContentBOJTool,
+} from '../../src/tools/fetch-problem-content-boj.js';
 
 // Mock 함수 선언 (vi.hoisted로 호이스팅)
 const { mockFetchProblemPage, mockParseProblemContent } = vi.hoisted(() => ({
@@ -55,17 +55,17 @@ vi.mock('../../src/utils/html-parser.js', () => {
   };
 });
 
-describe('FetchProblemContentInputSchema', () => {
+describe('FetchProblemContentBOJInputSchema', () => {
   describe('유효한 입력', () => {
     it('양의 정수 problem_id', () => {
       const input = { problem_id: 1000 };
-      const result = FetchProblemContentInputSchema.parse(input);
+      const result = FetchProblemContentBOJInputSchema.parse(input);
       expect(result).toEqual({ problem_id: 1000 });
     });
 
     it('큰 문제 번호도 허용', () => {
       const input = { problem_id: 30000 };
-      const result = FetchProblemContentInputSchema.parse(input);
+      const result = FetchProblemContentBOJInputSchema.parse(input);
       expect(result).toEqual({ problem_id: 30000 });
     });
   });
@@ -73,32 +73,32 @@ describe('FetchProblemContentInputSchema', () => {
   describe('유효하지 않은 입력', () => {
     it('0은 거부', () => {
       const input = { problem_id: 0 };
-      expect(() => FetchProblemContentInputSchema.parse(input)).toThrow();
+      expect(() => FetchProblemContentBOJInputSchema.parse(input)).toThrow();
     });
 
     it('음수는 거부', () => {
       const input = { problem_id: -1 };
-      expect(() => FetchProblemContentInputSchema.parse(input)).toThrow();
+      expect(() => FetchProblemContentBOJInputSchema.parse(input)).toThrow();
     });
 
     it('소수는 거부', () => {
       const input = { problem_id: 1000.5 };
-      expect(() => FetchProblemContentInputSchema.parse(input)).toThrow();
+      expect(() => FetchProblemContentBOJInputSchema.parse(input)).toThrow();
     });
 
     it('문자열은 거부', () => {
       const input = { problem_id: '1000' };
-      expect(() => FetchProblemContentInputSchema.parse(input)).toThrow();
+      expect(() => FetchProblemContentBOJInputSchema.parse(input)).toThrow();
     });
 
     it('problem_id 누락 시 거부', () => {
       const input = {};
-      expect(() => FetchProblemContentInputSchema.parse(input)).toThrow();
+      expect(() => FetchProblemContentBOJInputSchema.parse(input)).toThrow();
     });
   });
 });
 
-describe('handleFetchProblemContent', () => {
+describe('handleFetchProblemContentBOJ', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -135,7 +135,7 @@ describe('handleFetchProblemContent', () => {
       mockParseProblemContent.mockReturnValue(mockContent);
 
       // 도구 호출
-      const result = await handleFetchProblemContent({ problem_id: 1000 });
+      const result = await handleFetchProblemContentBOJ({ problem_id: 1000 });
 
       // 검증
       expect(result.type).toBe('text');
@@ -176,7 +176,7 @@ describe('handleFetchProblemContent', () => {
       };
       mockParseProblemContent.mockReturnValue(mockContent);
 
-      const result = await handleFetchProblemContent({ problem_id: 2557 });
+      const result = await handleFetchProblemContentBOJ({ problem_id: 2557 });
 
       const content = JSON.parse(result.text);
       expect(content.examples).toHaveLength(2);
@@ -186,19 +186,19 @@ describe('handleFetchProblemContent', () => {
   describe('에러 케이스', () => {
     it('입력 검증 실패 - 0', async () => {
       await expect(
-        handleFetchProblemContent({ problem_id: 0 })
+        handleFetchProblemContentBOJ({ problem_id: 0 })
       ).rejects.toThrow('입력 검증 실패');
     });
 
     it('입력 검증 실패 - 음수', async () => {
       await expect(
-        handleFetchProblemContent({ problem_id: -1 })
+        handleFetchProblemContentBOJ({ problem_id: -1 })
       ).rejects.toThrow('입력 검증 실패');
     });
 
     it('입력 검증 실패 - 문자열', async () => {
       await expect(
-        handleFetchProblemContent({ problem_id: '1000' as unknown as number })
+        handleFetchProblemContentBOJ({ problem_id: '1000' as unknown as number })
       ).rejects.toThrow('입력 검증 실패');
     });
 
@@ -210,7 +210,7 @@ describe('handleFetchProblemContent', () => {
       mockFetchProblemPage.mockRejectedValue(error);
 
       await expect(
-        handleFetchProblemContent({ problem_id: 999999 })
+        handleFetchProblemContentBOJ({ problem_id: 999999 })
       ).rejects.toThrow('문제를 찾을 수 없습니다');
     });
 
@@ -221,7 +221,7 @@ describe('handleFetchProblemContent', () => {
       mockFetchProblemPage.mockRejectedValue(error);
 
       await expect(
-        handleFetchProblemContent({ problem_id: 1000 })
+        handleFetchProblemContentBOJ({ problem_id: 1000 })
       ).rejects.toThrow('요청이 타임아웃되었습니다');
     });
 
@@ -232,7 +232,7 @@ describe('handleFetchProblemContent', () => {
       mockFetchProblemPage.mockRejectedValue(error);
 
       await expect(
-        handleFetchProblemContent({ problem_id: 1000 })
+        handleFetchProblemContentBOJ({ problem_id: 1000 })
       ).rejects.toThrow('네트워크 요청 실패');
     });
 
@@ -243,7 +243,7 @@ describe('handleFetchProblemContent', () => {
       mockFetchProblemPage.mockRejectedValue(error);
 
       await expect(
-        handleFetchProblemContent({ problem_id: 1000 })
+        handleFetchProblemContentBOJ({ problem_id: 1000 })
       ).rejects.toThrow('응답 형식 오류');
     });
 
@@ -259,7 +259,7 @@ describe('handleFetchProblemContent', () => {
       });
 
       await expect(
-        handleFetchProblemContent({ problem_id: 1000 })
+        handleFetchProblemContentBOJ({ problem_id: 1000 })
       ).rejects.toThrow('문제 제목을 찾을 수 없습니다.');
     });
 
@@ -268,7 +268,7 @@ describe('handleFetchProblemContent', () => {
       mockFetchProblemPage.mockRejectedValue(unexpectedError);
 
       await expect(
-        handleFetchProblemContent({ problem_id: 1000 })
+        handleFetchProblemContentBOJ({ problem_id: 1000 })
       ).rejects.toThrow('Unexpected Error');
     });
   });
@@ -294,7 +294,7 @@ describe('handleFetchProblemContent', () => {
       };
       mockParseProblemContent.mockReturnValue(mockContent);
 
-      const result = await handleFetchProblemContent({ problem_id: 1000 });
+      const result = await handleFetchProblemContentBOJ({ problem_id: 1000 });
 
       expect(result).toHaveProperty('type', 'text');
       expect(result).toHaveProperty('text');
@@ -321,7 +321,7 @@ describe('handleFetchProblemContent', () => {
       };
       mockParseProblemContent.mockReturnValue(mockContent);
 
-      const result = await handleFetchProblemContent({ problem_id: 1000 });
+      const result = await handleFetchProblemContentBOJ({ problem_id: 1000 });
 
       // JSON 파싱 가능한지 확인
       expect(() => JSON.parse(result.text)).not.toThrow();
@@ -332,11 +332,11 @@ describe('handleFetchProblemContent', () => {
   });
 });
 
-describe('fetchProblemContentTool', () => {
+describe('fetchProblemContentBOJTool', () => {
   it('도구 정의가 올바른 구조를 가짐', () => {
-    const tool = fetchProblemContentTool();
+    const tool = fetchProblemContentBOJTool();
 
-    expect(tool).toHaveProperty('name', 'fetch_problem_content');
+    expect(tool).toHaveProperty('name', 'fetch_problem_content_boj');
     expect(tool).toHaveProperty('description');
     expect(typeof tool.description).toBe('string');
     expect(tool).toHaveProperty('inputSchema');
@@ -344,13 +344,13 @@ describe('fetchProblemContentTool', () => {
     expect(typeof tool.handler).toBe('function');
   });
 
-  it('handler가 handleFetchProblemContent 함수임', () => {
-    const tool = fetchProblemContentTool();
-    expect(tool.handler).toBe(handleFetchProblemContent);
+  it('handler가 handleFetchProblemContentBOJ 함수임', () => {
+    const tool = fetchProblemContentBOJTool();
+    expect(tool.handler).toBe(handleFetchProblemContentBOJ);
   });
 
   it('inputSchema가 올바른 Zod 스키마임', () => {
-    const tool = fetchProblemContentTool();
-    expect(tool.inputSchema).toBe(FetchProblemContentInputSchema);
+    const tool = fetchProblemContentBOJTool();
+    expect(tool.inputSchema).toBe(FetchProblemContentBOJInputSchema);
   });
 });

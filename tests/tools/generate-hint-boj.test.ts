@@ -1,5 +1,5 @@
 /**
- * generate_hint 도구 테스트 (SRP 리팩토링)
+ * generate_hint_boj 도구 테스트 (SRP 리팩토링)
  *
  * 테스트 범위:
  * - Zod 스키마 검증
@@ -8,11 +8,11 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { GenerateHintInputSchema, generateHintTool } from '../../src/tools/generate-hint.js';
+import { GenerateHintBOJInputSchema, generateHintBOJTool } from '../../src/tools/generate-hint-boj.js';
 import type { ProblemAnalyzer } from '../../src/services/problem-analyzer.js';
 import { ProblemNotFoundError } from '../../src/api/types.js';
 
-describe('generate_hint 도구', () => {
+describe('generate_hint_boj 도구', () => {
   describe('Zod 스키마 검증', () => {
     it('유효한 problem_id 허용', () => {
       // Given: 유효한 입력
@@ -21,7 +21,7 @@ describe('generate_hint 도구', () => {
       };
 
       // When
-      const result = GenerateHintInputSchema.safeParse(validInput);
+      const result = GenerateHintBOJInputSchema.safeParse(validInput);
 
       // Then
       expect(result.success).toBe(true);
@@ -37,7 +37,7 @@ describe('generate_hint 도구', () => {
       };
 
       // When
-      const result = GenerateHintInputSchema.safeParse(invalidInput);
+      const result = GenerateHintBOJInputSchema.safeParse(invalidInput);
 
       // Then
       expect(result.success).toBe(false);
@@ -50,7 +50,7 @@ describe('generate_hint 도구', () => {
       };
 
       // When
-      const result = GenerateHintInputSchema.safeParse(invalidInput);
+      const result = GenerateHintBOJInputSchema.safeParse(invalidInput);
 
       // Then
       expect(result.success).toBe(false);
@@ -63,7 +63,7 @@ describe('generate_hint 도구', () => {
       };
 
       // When
-      const result = GenerateHintInputSchema.safeParse(invalidInput);
+      const result = GenerateHintBOJInputSchema.safeParse(invalidInput);
 
       // Then
       expect(result.success).toBe(false);
@@ -74,7 +74,7 @@ describe('generate_hint 도구', () => {
       const invalidInput = {};
 
       // When
-      const result = GenerateHintInputSchema.safeParse(invalidInput);
+      const result = GenerateHintBOJInputSchema.safeParse(invalidInput);
 
       // Then
       expect(result.success).toBe(false);
@@ -87,7 +87,7 @@ describe('generate_hint 도구', () => {
       };
 
       // When
-      const result = GenerateHintInputSchema.safeParse(invalidInput);
+      const result = GenerateHintBOJInputSchema.safeParse(invalidInput);
 
       // Then
       expect(result.success).toBe(false);
@@ -101,7 +101,7 @@ describe('generate_hint 도구', () => {
       };
 
       // When
-      const result = GenerateHintInputSchema.safeParse(inputWithExtra);
+      const result = GenerateHintBOJInputSchema.safeParse(inputWithExtra);
 
       // Then
       expect(result.success).toBe(true);
@@ -115,17 +115,17 @@ describe('generate_hint 도구', () => {
 /**
  * 통합 테스트
  */
-describe('generate_hint 도구 핸들러', () => {
+describe('generate_hint_boj 도구 핸들러', () => {
   let mockAnalyzer: {
     analyze: ReturnType<typeof vi.fn>;
   };
-  let tool: ReturnType<typeof generateHintTool>;
+  let tool: ReturnType<typeof generateHintBOJTool>;
 
   beforeEach(() => {
     mockAnalyzer = {
       analyze: vi.fn(),
     };
-    tool = generateHintTool(mockAnalyzer as unknown as ProblemAnalyzer);
+    tool = generateHintBOJTool(mockAnalyzer as unknown as ProblemAnalyzer);
   });
 
   it('정상 힌트 생성', async () => {

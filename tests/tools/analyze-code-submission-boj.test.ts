@@ -1,19 +1,19 @@
 /**
- * analyze_code_submission 도구 테스트
+ * analyze_code_submission_boj 도구 테스트
  *
  * Phase 6 - P6-006
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
-  handleAnalyzeCodeSubmission,
-  AnalyzeCodeSubmissionInputSchema,
-} from '../../src/tools/analyze-code-submission.js';
+  handleAnalyzeCodeSubmissionBOJ,
+  AnalyzeCodeSubmissionBOJInputSchema,
+} from '../../src/tools/analyze-code-submission-boj.js';
 import type { ProblemContent, CodeAnalysisResult } from '../../src/types/problem-content.js';
 
 // Mock 설정
-vi.mock('../../src/tools/fetch-problem-content.js', () => ({
-  handleFetchProblemContent: vi.fn(),
+vi.mock('../../src/tools/fetch-problem-content-boj.js', () => ({
+  handleFetchProblemContentBOJ: vi.fn(),
 }));
 
 vi.mock('../../src/services/code-analyzer.js', () => {
@@ -25,10 +25,10 @@ vi.mock('../../src/services/code-analyzer.js', () => {
 });
 
 // Mock 임포트
-import { handleFetchProblemContent } from '../../src/tools/fetch-problem-content.js';
+import { handleFetchProblemContentBOJ } from '../../src/tools/fetch-problem-content-boj.js';
 import { CodeAnalyzer } from '../../src/services/code-analyzer.js';
 
-describe('AnalyzeCodeSubmissionInputSchema', () => {
+describe('AnalyzeCodeSubmissionBOJInputSchema', () => {
   describe('입력 검증', () => {
     it('필수 필드: problem_id, code, language', () => {
       const input = {
@@ -37,7 +37,7 @@ describe('AnalyzeCodeSubmissionInputSchema', () => {
         language: 'python',
       };
 
-      const result = AnalyzeCodeSubmissionInputSchema.parse(input);
+      const result = AnalyzeCodeSubmissionBOJInputSchema.parse(input);
 
       expect(result.problem_id).toBe(1000);
       expect(result.code).toBe('print("Hello World")');
@@ -64,9 +64,9 @@ describe('AnalyzeCodeSubmissionInputSchema', () => {
         language: 'python',
       };
 
-      expect(() => AnalyzeCodeSubmissionInputSchema.parse(input1)).toThrow();
-      expect(() => AnalyzeCodeSubmissionInputSchema.parse(input2)).toThrow();
-      expect(() => AnalyzeCodeSubmissionInputSchema.parse(input3)).toThrow();
+      expect(() => AnalyzeCodeSubmissionBOJInputSchema.parse(input1)).toThrow();
+      expect(() => AnalyzeCodeSubmissionBOJInputSchema.parse(input2)).toThrow();
+      expect(() => AnalyzeCodeSubmissionBOJInputSchema.parse(input3)).toThrow();
     });
 
     it('code는 비어있지 않아야 함', () => {
@@ -76,7 +76,7 @@ describe('AnalyzeCodeSubmissionInputSchema', () => {
         language: 'python',
       };
 
-      expect(() => AnalyzeCodeSubmissionInputSchema.parse(input)).toThrow();
+      expect(() => AnalyzeCodeSubmissionBOJInputSchema.parse(input)).toThrow();
     });
 
     it('language는 지원되는 언어만 허용', () => {
@@ -89,7 +89,7 @@ describe('AnalyzeCodeSubmissionInputSchema', () => {
           language: lang,
         };
 
-        const result = AnalyzeCodeSubmissionInputSchema.parse(input);
+        const result = AnalyzeCodeSubmissionBOJInputSchema.parse(input);
         expect(result.language).toBe(lang);
       }
 
@@ -99,7 +99,7 @@ describe('AnalyzeCodeSubmissionInputSchema', () => {
         language: 'ruby',
       };
 
-      expect(() => AnalyzeCodeSubmissionInputSchema.parse(invalidInput)).toThrow();
+      expect(() => AnalyzeCodeSubmissionBOJInputSchema.parse(invalidInput)).toThrow();
     });
 
     it('analysis_type은 선택사항, 기본값은 "full"', () => {
@@ -109,7 +109,7 @@ describe('AnalyzeCodeSubmissionInputSchema', () => {
         language: 'python',
       };
 
-      const result1 = AnalyzeCodeSubmissionInputSchema.parse(input1);
+      const result1 = AnalyzeCodeSubmissionBOJInputSchema.parse(input1);
       expect(result1.analysis_type).toBe('full');
 
       const input2 = {
@@ -119,7 +119,7 @@ describe('AnalyzeCodeSubmissionInputSchema', () => {
         analysis_type: 'hint',
       };
 
-      const result2 = AnalyzeCodeSubmissionInputSchema.parse(input2);
+      const result2 = AnalyzeCodeSubmissionBOJInputSchema.parse(input2);
       expect(result2.analysis_type).toBe('hint');
     });
 
@@ -134,7 +134,7 @@ describe('AnalyzeCodeSubmissionInputSchema', () => {
           analysis_type: type,
         };
 
-        const result = AnalyzeCodeSubmissionInputSchema.parse(input);
+        const result = AnalyzeCodeSubmissionBOJInputSchema.parse(input);
         expect(result.analysis_type).toBe(type);
       }
 
@@ -145,12 +145,12 @@ describe('AnalyzeCodeSubmissionInputSchema', () => {
         analysis_type: 'invalid',
       };
 
-      expect(() => AnalyzeCodeSubmissionInputSchema.parse(invalidInput)).toThrow();
+      expect(() => AnalyzeCodeSubmissionBOJInputSchema.parse(invalidInput)).toThrow();
     });
   });
 });
 
-describe('handleAnalyzeCodeSubmission', () => {
+describe('handleAnalyzeCodeSubmissionBOJ', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -196,7 +196,7 @@ describe('handleAnalyzeCodeSubmission', () => {
       };
 
       // Mock 함수 설정
-      vi.mocked(handleFetchProblemContent).mockResolvedValue({
+      vi.mocked(handleFetchProblemContentBOJ).mockResolvedValue({
         type: 'text',
         text: JSON.stringify(mockProblemContent),
       });
@@ -214,7 +214,7 @@ describe('handleAnalyzeCodeSubmission', () => {
         analysis_type: 'full',
       };
 
-      const result = await handleAnalyzeCodeSubmission(input);
+      const result = await handleAnalyzeCodeSubmissionBOJ(input);
 
       // 검증
       expect(result.type).toBe('text');
@@ -222,7 +222,7 @@ describe('handleAnalyzeCodeSubmission', () => {
       expect(parsedResult).toEqual(mockAnalysisResult);
 
       // Mock 호출 검증
-      expect(handleFetchProblemContent).toHaveBeenCalledWith({ problem_id: 1000 });
+      expect(handleFetchProblemContentBOJ).toHaveBeenCalledWith({ problem_id: 1000 });
       expect(CodeAnalyzer).toHaveBeenCalled();
       expect(mockAnalyzeCode).toHaveBeenCalledWith(
         mockProblemContent,
@@ -275,7 +275,7 @@ describe('handleAnalyzeCodeSubmission', () => {
       };
 
       // Mock 함수 설정
-      vi.mocked(handleFetchProblemContent).mockResolvedValue({
+      vi.mocked(handleFetchProblemContentBOJ).mockResolvedValue({
         type: 'text',
         text: JSON.stringify(mockProblemContent),
       });
@@ -293,7 +293,7 @@ describe('handleAnalyzeCodeSubmission', () => {
         analysis_type: 'hint',
       };
 
-      const result = await handleAnalyzeCodeSubmission(input);
+      const result = await handleAnalyzeCodeSubmissionBOJ(input);
 
       // 검증
       expect(result.type).toBe('text');
@@ -328,7 +328,7 @@ describe('handleAnalyzeCodeSubmission', () => {
         },
       };
 
-      vi.mocked(handleFetchProblemContent).mockResolvedValue({
+      vi.mocked(handleFetchProblemContentBOJ).mockResolvedValue({
         type: 'text',
         text: JSON.stringify(mockProblemContent),
       });
@@ -350,7 +350,7 @@ describe('handleAnalyzeCodeSubmission', () => {
         language: 'python',
       };
 
-      await handleAnalyzeCodeSubmission(input);
+      await handleAnalyzeCodeSubmissionBOJ(input);
 
       // 기본값 "full"로 호출되었는지 확인
       expect(mockAnalyzeCode).toHaveBeenCalledWith(
@@ -395,7 +395,7 @@ describe('handleAnalyzeCodeSubmission', () => {
         ],
       };
 
-      vi.mocked(handleFetchProblemContent).mockResolvedValue({
+      vi.mocked(handleFetchProblemContentBOJ).mockResolvedValue({
         type: 'text',
         text: JSON.stringify(mockProblemContent),
       });
@@ -404,7 +404,7 @@ describe('handleAnalyzeCodeSubmission', () => {
         this.analyzeCode = vi.fn().mockResolvedValue(mockAnalysisResult);
       } as any);
 
-      const result = await handleAnalyzeCodeSubmission({
+      const result = await handleAnalyzeCodeSubmissionBOJ({
         problem_id: 1000,
         code: 'code',
         language: 'python',
@@ -444,7 +444,7 @@ describe('handleAnalyzeCodeSubmission', () => {
         },
       };
 
-      vi.mocked(handleFetchProblemContent).mockResolvedValue({
+      vi.mocked(handleFetchProblemContentBOJ).mockResolvedValue({
         type: 'text',
         text: JSON.stringify(mockProblemContent),
       });
@@ -458,7 +458,7 @@ describe('handleAnalyzeCodeSubmission', () => {
         });
       } as any);
 
-      const result = await handleAnalyzeCodeSubmission({
+      const result = await handleAnalyzeCodeSubmissionBOJ({
         problem_id: 1000,
         code: 'code',
         language: 'python',
@@ -480,11 +480,11 @@ describe('handleAnalyzeCodeSubmission', () => {
         language: 'python',
       };
 
-      await expect(handleAnalyzeCodeSubmission(invalidInput)).rejects.toThrow('입력 검증 실패');
+      await expect(handleAnalyzeCodeSubmissionBOJ(invalidInput)).rejects.toThrow('입력 검증 실패');
     });
 
     it('문제 스크래핑 실패 시 에러 전파', async () => {
-      vi.mocked(handleFetchProblemContent).mockRejectedValue(
+      vi.mocked(handleFetchProblemContentBOJ).mockRejectedValue(
         new Error('문제를 찾을 수 없습니다: 99999번')
       );
 
@@ -494,7 +494,7 @@ describe('handleAnalyzeCodeSubmission', () => {
         language: 'python',
       };
 
-      await expect(handleAnalyzeCodeSubmission(input)).rejects.toThrow('문제를 찾을 수 없습니다');
+      await expect(handleAnalyzeCodeSubmissionBOJ(input)).rejects.toThrow('문제를 찾을 수 없습니다');
     });
   });
 });
