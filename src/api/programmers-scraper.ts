@@ -10,7 +10,9 @@ import { RateLimiter } from '../utils/rate-limiter.js';
 import {
   ProgrammersSearchOptions,
   ProgrammersProblemSummary,
+  ProgrammersProblemDetail,
 } from '../types/programmers.js';
+import { parseProgrammersProblemContent } from '../utils/html-parser.js';
 
 /**
  * 프로그래머스 스크래핑 에러
@@ -224,13 +226,159 @@ export class ProgrammersScraper {
   }
 
   /**
-   * 문제 상세 페이지 가져오기 (Task 7.3에서 구현)
+   * 문제 상세 페이지 HTML 가져오기 (fetch 기반, BOJScraper 패턴)
    *
    * @param problemId 문제 ID
    * @returns HTML 문자열
-   * @throws {Error} Not implemented yet
+   * @throws {ProgrammersScrapeError}
    */
-  async fetchProblemPage(_problemId: string): Promise<string> {
-    throw new Error('fetchProblemPage is not implemented yet (Task 7.3)');
+  async fetchProblemPage(problemId: string): Promise<string> {
+    if (!problemId || !/^\d+$/.test(problemId)) {
+      throw new ProgrammersScrapeError(
+        `유효하지 않은 문제 ID: ${problemId}`,
+        'PARSE_ERROR'
+      );
+    }
+
+    // Rate limiting
+    await this.rateLimiter.acquire();
+
+    const url = `${this.baseUrl}/learn/courses/30/lessons/${problemId}`;
+    let lastError: unknown;
+
+    // 재시도 로직 (최대 2회)
+    for (let attempt = 0; attempt <= 2; attempt++) {
+      try {
+        const html = await this._fetchWithTimeout(url);
+        return html;
+      } catch (error) {
+        lastError = error;
+
+        // 404는 재시도 불필요
+        if (
+          error instanceof ProgrammersScrapeError &&
+          error.code === 'NAVIGATION_ERROR'
+        ) {
+          throw error;
+        }
+
+        // 마지막 시도가 아니면 재시도
+        if (attempt < 2) {
+          await this._delay(3000); // 3초 대기
+          continue;
+        }
+      }
+    }
+
+    // 모든 재시도 실패
+    throw new ProgrammersScrapeError(
+      `문제 ${problemId}를 3번 시도했으나 실패했습니다.`,
+      'NAVIGATION_ERROR',
+      lastError
+    );
+  }
+
+  /**
+   * 타임아웃 적용된 HTTP 요청 (fetch 기반, BOJScraper 패턴)
+   */
+  private async _fetchWithTimeout(url: string): Promise<string> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    try {
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          Accept: 'text/html',
+          'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+        },
+      });
+
+      clearTimeout(timeoutId);
+
+      // 404 처리
+      if (response.status === 404) {
+        throw new ProgrammersScrapeError(
+          `문제를 찾을 수 없습니다: ${url}`,
+          'NAVIGATION_ERROR'
+        );
+      }
+
+      // 기타 HTTP 에러
+      if (!response.ok) {
+        throw new ProgrammersScrapeError(
+          `HTTP 에러 ${response.status}: ${response.statusText}`,
+          'NAVIGATION_ERROR'
+        );
+      }
+
+      const html = await response.text();
+
+      // HTML 검증
+      if (!html || html.length < 100) {
+        throw new ProgrammersScrapeError(
+          '빈 HTML 응답을 받았습니다.',
+          'PARSE_ERROR'
+        );
+      }
+
+      return html;
+    } catch (error) {
+      clearTimeout(timeoutId);
+
+      // 이미 ProgrammersScrapeError면 그대로 throw
+      if (error instanceof ProgrammersScrapeError) {
+        throw error;
+      }
+
+      // AbortError는 타임아웃
+      if ((error as Error).name === 'AbortError') {
+        throw new ProgrammersScrapeError(
+          `요청이 타임아웃되었습니다 (10000ms 초과)`,
+          'TIMEOUT',
+          error
+        );
+      }
+
+      // 기타 네트워크 에러
+      throw new ProgrammersScrapeError(
+        `네트워크 요청 실패: ${(error as Error).message}`,
+        'NAVIGATION_ERROR',
+        error
+      );
+    }
+  }
+
+  /**
+   * 지연 함수 (재시도 간격)
+   */
+  private _delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * 문제 상세 정보 조회 (fetch + cheerio 기반)
+   *
+   * @param problemId 문제 ID
+   * @returns 문제 상세 정보
+   * @throws {ProgrammersScrapeError}
+   */
+  async getProblem(problemId: string): Promise<ProgrammersProblemDetail> {
+    // 1. HTML 가져오기
+    const html = await this.fetchProblemPage(problemId);
+
+    // 2. HTML 파싱
+    try {
+      const detail = parseProgrammersProblemContent(html, problemId);
+      return detail;
+    } catch (error) {
+      throw new ProgrammersScrapeError(
+        `HTML 파싱 실패: ${(error as Error).message}`,
+        'PARSE_ERROR',
+        error
+      );
+    }
   }
 }

@@ -51,6 +51,14 @@ import {
   analyzeCodeSubmissionTool,
   AnalyzeCodeSubmissionInputSchema,
 } from './tools/analyze-code-submission.js';
+import {
+  searchProgrammersProblemsTool,
+  SearchProgrammersProblemsInputSchema,
+} from './tools/search-programmers-problems.js';
+import {
+  getProgrammersProblemTool,
+  GetProgrammersProblemInputSchema,
+} from './tools/get-programmers-problem.js';
 
 // 서비스 임포트
 import { SolvedAcClient } from './api/solvedac-client.js';
@@ -70,6 +78,8 @@ const generateReviewTemplateToolObj = generateReviewTemplateTool(reviewTemplateG
 const generateHintToolObj = generateHintTool(problemAnalyzer);
 const fetchProblemContentToolObj = fetchProblemContentTool();
 const analyzeCodeSubmissionToolObj = analyzeCodeSubmissionTool();
+const searchProgrammersProblemsToolObj = searchProgrammersProblemsTool();
+const getProgrammersProblemToolObj = getProgrammersProblemTool();
 
 /**
  * MCP 서버 초기화
@@ -143,6 +153,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: 'analyze_code_submission',
         description: analyzeCodeSubmissionToolObj.description,
         inputSchema: zodToJsonSchema(AnalyzeCodeSubmissionInputSchema as any) as any,
+      },
+      {
+        name: 'search_programmers_problems',
+        description: searchProgrammersProblemsToolObj.description,
+        inputSchema: zodToJsonSchema(SearchProgrammersProblemsInputSchema as any) as any,
+      },
+      {
+        name: 'get_programmers_problem',
+        description: getProgrammersProblemToolObj.description,
+        inputSchema: zodToJsonSchema(GetProgrammersProblemInputSchema as any) as any,
       },
       {
         name: 'health_check',
@@ -466,6 +486,22 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
+      case 'search_programmers_problems': {
+        const input = SearchProgrammersProblemsInputSchema.parse(args);
+        const result = await searchProgrammersProblemsToolObj.handler(input);
+        return {
+          content: [result],
+        };
+      }
+
+      case 'get_programmers_problem': {
+        const input = GetProgrammersProblemInputSchema.parse(args);
+        const result = await getProgrammersProblemToolObj.handler(input);
+        return {
+          content: [result],
+        };
+      }
+
       case 'health_check': {
         return {
           content: [
@@ -486,6 +522,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     'generate_hint',
                     'fetch_problem_content',
                     'analyze_code_submission',
+                    'search_programmers_problems',
+                    'get_programmers_problem',
                     'health_check'
                   ],
                 },
