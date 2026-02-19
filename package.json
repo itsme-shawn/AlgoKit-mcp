@@ -1,6 +1,6 @@
 {
-  "name": "AlgoKit-mcp",
-  "version": "1.0.0",
+  "name": "algokit-mcp",
+  "version": "1.0.2",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
