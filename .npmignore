@@ -1,0 +1,53 @@
+# Source files (only dist/ should be published)
+src/
+tests/
+docs/
+
+# Development files
+.claude/
+.taskmaster/
+tsconfig.json
+vitest.config.ts
+.mcp.json
+
+# Git files
+.git/
+.gitignore
+
+# Build artifacts
+*.tsbuildinfo
+coverage/
+.nyc_output/
+
+# Documentation (제외하려면)
+*.md
+!README.md
+
+# IDE
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.*
+
+# Temporary
+tmp/
+temp/
+stash/
+
+# Landing page files (제외)
+landing/
+landing-page/
+*.svg
+*.png
+full-page*.png
+hero-section.png

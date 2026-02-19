@@ -1,5 +1,5 @@
 {
-  "name": "algokit-mcp-server",
+  "name": "AlgoKit-mcp",
   "version": "1.0.0",
   "type": "module",
   "main": "dist/index.js",
@@ -15,18 +15,33 @@
   },
   "keywords": [
     "mcp",
-    "algokit",
+    "mcp-server",
+    "algorithm",
+    "coding-test",
     "baekjoon",
     "boj",
-    "algorithm",
-    "solved.ac"
+    "programmers",
+    "solved.ac",
+    "ai-assistant",
+    "study-helper"
   ],
   "files": [
     "dist"
   ],
-  "author": "",
-  "license": "ISC",
-  "description": "BOJ 학습 도우미 MCP Server - AI-powered algorithm problem study assistant",
+  "author": "itsme-shawn <chs98105@gmail.com>",
+  "license": "MIT",
+  "description": "백준(BOJ), 프로그래머스 MCP Toolkit for algorithm learning (AI-powered hints, analysis & review templates for BOJ and Programmers)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/itsme-shawn/AlgoKit-mcp.git"
+  },
+  "homepage": "https://github.com/itsme-shawn/AlgoKit-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/itsme-shawn/AlgoKit-mcp/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",
     "cheerio": "^1.2.0",
