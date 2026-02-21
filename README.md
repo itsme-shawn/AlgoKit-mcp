@@ -269,7 +269,7 @@ MIT
 
 <div align="center">
 
-**[GitHub](https://github.com/itsme-shawn/AlgoKit-mcp)** • **[Issues](https://github.com/itsme-shawn/algoKit-mcp/issues)** • **[NPM](https://www.npmjs.com/package/algokit-mcp-server)**
+**[GitHub](https://github.com/itsme-shawn/AlgoKit-mcp)** • **[Issues](https://github.com/itsme-shawn/algoKit-mcp/issues)** • **[NPM](https://www.npmjs.com/package/algokit-mcp)**
 
 
 </div>

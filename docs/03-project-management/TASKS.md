@@ -233,16 +233,13 @@
 
 ### 기획 및 설계
 - [프로젝트 요구사항](../01-planning/PRD.md)
-- [시스템 아키텍처](../01-planning/architecture.md)
+- [시스템 아키텍처](../02-development/ARCHITECTURE.md)
 - [Rate Limiting 설계](../01-planning/rate-limiting.md)
 - [LRU 캐싱 설계](../01-planning/lru-caching.md)
-- [프롬프트 아키텍처 설계](../01-planning/prompt-architecture-design.md)
-- [Programmers 통합 계획](../01-planning/programmers-puppeteer-implementation.md)
 
 ### 개발 가이드
-- [API 통합 가이드](../02-development/api-integration.md)
-- [MCP 도구 레퍼런스](../02-development/tools-reference.md)
-- [Web Scraping 가이드](../02-development/web-scraping-guide.md)
+- [외부 API 통합 가이드](../02-development/EXTERNAL_API.md)
+- [MCP 도구 레퍼런스](../02-development/TOOLS.md)
 
 ### 테스트
 - [Phase 7 테스트 스펙](../04-testing/test-spec-phase7.md)

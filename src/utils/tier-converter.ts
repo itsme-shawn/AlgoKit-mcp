@@ -105,6 +105,9 @@ export function tierToLevelRange(tier: string): [number, number] {
  * getTierBadge(6)  // "⚪ Silver V"
  */
 export function getTierBadge(level: number): string {
+  // level 0 = 미분류(Unrated)
+  if (level === 0) return '⬜ Unrated';
+
   // levelToTier에서 검증 수행
   const tierName = levelToTier(level);
 

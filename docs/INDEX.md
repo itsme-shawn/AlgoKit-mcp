@@ -1,7 +1,7 @@
 # 📚 AlgoKit 문서 인덱스
 
-**마지막 업데이트**: 2026-02-16 (문서 정리 완료)
-**총 문서**: 19개 (정리 전: 36개 → 정리 후: 19개, **47% 감소**)
+**마지막 업데이트**: 2026-02-21 (TOOLS.md 도구명 및 파라미터 설명 수정)
+**총 문서**: 18개
 
 ---
 
@@ -75,11 +75,6 @@
 - **제목**: 현재 태스크 관리
 - **목적**: Phase별 작업 항목 및 진행 상황 추적
 - **주요 내용**: Phase 1-7 태스크, 상태, 우선순위, 인수 조건
-
-### [tasks-backup-20260215.md](03-project-management/tasks-backup-20260215.md)
-- **제목**: 태스크 백업 (2026-02-15)
-- **목적**: 과거 태스크 기록 보존
-- **참고**: 역사적 기록용, TASKS.md를 대신 참조하세요
 
 ---
 
@@ -171,6 +166,9 @@
 
 | 날짜 | 변경 내용 | 담당자 |
 |------|-----------|--------|
+| 2026-02-21 | TOOLS.md 도구명 정확화 (BOJ 도구에 `_boj` 접미사 반영) | technical-writer |
+| 2026-02-21 | TOOLS.md search_problems level_min/level_max 파라미터 타입 수정 | technical-writer |
+| 2026-02-21 | TOOLS.md, TASKS.md 깨진 참고 문서 링크 수정 | technical-writer |
 | 2026-02-16 | 문서 대대적 정리 (36개 → 19개, 47% 감소) | technical-writer |
 | 2026-02-16 | TOOLS.md에 프로그래머스 CSS Selectors 통합 | technical-writer |
 | 2026-02-16 | ARCHITECTURE.md에 웹 스크래핑 전략 추가 | technical-writer |

@@ -564,8 +564,7 @@ Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36...
 4. 비상업적 사용 (교육 목적)
 
 **참고 문서**:
-- [Web Scraping 가이드](web-scraping-guide.md) (삭제 예정 - 내용 통합 완료)
-- [프로그래머스 아키텍처](programmers-puppeteer-implementation.md) (삭제 예정 - 핵심만 통합)
+- [MCP 도구 레퍼런스](./TOOLS.md) - 프로그래머스 도구 상세 스펙
 
 ---
 
