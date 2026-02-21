@@ -1,7 +1,7 @@
 # MCP 도구 레퍼런스
 
-**버전**: 3.2
-**마지막 업데이트**: 2026-02-15 (LRU 캐싱 최적화 완료)
+**버전**: 3.3
+**마지막 업데이트**: 2026-02-21 (search_problems level 파라미터 설명 수정)
 
 ---
 
@@ -20,16 +20,21 @@
 
 | 도구명 | 상태 | Phase | 설명 |
 |-------|------|-------|------|
-| `analyze_problem` | ✅ 완료 | Phase 5 | 문제 메타데이터 분석 |
-| `generate_hint` | ✅ 완료 | SRP 리팩토링 | 3단계 힌트 가이드 생성 |
-| `generate_review_template` | ✅ 완료 | Phase 5 | 복습 템플릿 및 가이드 프롬프트 |
-| `search_problems` | ✅ 완료 | Phase 2 | 문제 검색 |
-| `get_problem` | ✅ 완료 | Phase 2 | 문제 상세 조회 |
+| `search_problems` | ✅ 완료 | Phase 2 | BOJ 문제 검색 |
+| `get_problem` | ✅ 완료 | Phase 2 | BOJ 문제 상세 조회 |
 | `search_tags` | ✅ 완료 | Phase 2 | 알고리즘 태그 검색 |
-| `fetch_problem_content` | ✅ 완료 | Phase 6 | BOJ 문제 본문 스크래핑 |
-| `analyze_code_submission` | ✅ 완료 | Phase 6 | 사용자 코드 분석 및 피드백 |
+| `analyze_problem_boj` | ✅ 완료 | Phase 5 | BOJ 문제 분석 및 힌트 가이드 |
+| `generate_hint_boj` | ✅ 완료 | Phase 5 | BOJ 3단계 힌트 생성 |
+| `generate_review_template_boj` | ✅ 완료 | Phase 5 | BOJ 복습 템플릿 및 가이드 프롬프트 |
+| `fetch_problem_content_boj` | ✅ 완료 | Phase 6 | BOJ 문제 본문 스크래핑 |
+| `analyze_code_submission_boj` | ✅ 완료 | Phase 6 | BOJ 코드 분석 및 피드백 |
 | `search_programmers_problems` | ✅ 완료 | Phase 7 | 프로그래머스 문제 검색 |
 | `get_programmers_problem` | ✅ 완료 | Phase 7 | 프로그래머스 문제 상세 조회 |
+| `analyze_problem_programmers` | 🚧 스텁 | Phase 7+ | 프로그래머스 문제 분석 |
+| `generate_hint_programmers` | 🚧 스텁 | Phase 7+ | 프로그래머스 힌트 생성 |
+| `generate_review_template_programmers` | 🚧 스텁 | Phase 7+ | 프로그래머스 복습 템플릿 |
+| `fetch_problem_content_programmers` | 🚧 스텁 | Phase 7+ | 프로그래머스 문제 본문 스크래핑 |
+| `analyze_code_submission_programmers` | 🚧 스텁 | Phase 7+ | 프로그래머스 코드 분석 |
 
 ### 아키텍처 특징
 
@@ -43,7 +48,7 @@
 
 ## 핵심 도구
 
-### 1. analyze_problem
+### 1. analyze_problem_boj
 
 **설명**: BOJ 문제 메타데이터를 분석합니다 (SRP: 분석만, 힌트는 별도 도구).
 
@@ -79,13 +84,13 @@
 **사용 방법**:
 ```typescript
 // MCP 호출
-const result = await mcpClient.call('analyze_problem', {
+const result = await mcpClient.call('analyze_problem_boj', {
   problem_id: 11053,
   include_similar: true
 });
 
 // 문제 메타데이터만 필요할 때 사용
-// 힌트가 필요하면 generate_hint 도구 사용
+// 힌트가 필요하면 generate_hint_boj 도구 사용
 ```
 
 **핵심 기능**:
@@ -96,7 +101,7 @@ const result = await mcpClient.call('analyze_problem', {
 
 ---
 
-### 2. generate_hint
+### 2. generate_hint_boj
 
 **설명**: BOJ 문제의 3단계 힌트 가이드를 생성합니다 (SRP: 힌트만).
 
@@ -146,7 +151,7 @@ const result = await mcpClient.call('analyze_problem', {
 **사용 방법**:
 ```typescript
 // MCP 호출
-const result = await mcpClient.call('generate_hint', {
+const result = await mcpClient.call('generate_hint_boj', {
   problem_id: 11053
 });
 
@@ -177,9 +182,9 @@ const result = await mcpClient.call('generate_hint', {
 
 ---
 
-### 3. generate_review_template
+### 3. generate_review_template_boj
 
-**설명**: 문제 복습용 마크다운 템플릿 및 가이드 프롬프트를 생성합니다.
+**설명**: BOJ 문제 복습용 마크다운 템플릿 및 가이드 프롬프트를 생성합니다.
 
 **입력**:
 ```typescript
@@ -205,7 +210,7 @@ const result = await mcpClient.call('generate_hint', {
 
 **사용 방법**:
 ```typescript
-const result = await mcpClient.call('generate_review_template', {
+const result = await mcpClient.call('generate_review_template_boj', {
   problem_id: 1927
 });
 
@@ -259,13 +264,28 @@ const result = await mcpClient.call('generate_review_template', {
 **입력**:
 ```typescript
 {
-  query?: string;            // 검색 키워드 (예: "이분 탐색")
-  tag?: string;              // 태그 (예: "dp")
-  level_min?: number;        // 최소 난이도 (1-30)
-  level_max?: number;        // 최대 난이도 (1-30)
-  page?: number;             // 페이지 번호 (기본: 1)
+  query?: string;              // 검색 키워드 (예: "이분 탐색")
+  tags?: string | string[];    // 태그 (예: "dp" 또는 ["dp", "greedy", "bfs"])
+  level_min?: number | string; // 최소 난이도: 숫자(1-30) 또는 티어 문자열(예: "실버 3", "Gold I")
+  level_max?: number | string; // 최대 난이도: 숫자(1-30) 또는 티어 문자열(예: "골드 2", "Silver I")
+  sort?: 'level' | 'id' | 'average_try'; // 정렬 기준
+  direction?: 'asc' | 'desc'; // 정렬 방향
+  page?: number;               // 페이지 번호 (기본: 1)
 }
 ```
+
+**level_min / level_max 입력 형식**:
+- 숫자: `11` (Gold V), `15` (Gold I)
+- 숫자 문자열: `"11"`, `"15"` (자동 변환)
+- 티어 문자열: `"골드 5"`, `"Gold I"`, `"실버 3"`, `"Silver III"`
+
+**티어-레벨 대응표**:
+- 1-5: Bronze V-I
+- 6-10: Silver V-I
+- 11-15: Gold V-I
+- 16-20: Platinum V-I
+- 21-25: Diamond V-I
+- 26-30: Ruby V-I
 
 **출력**:
 ```typescript
@@ -355,8 +375,7 @@ const result = await mcpClient.call('generate_review_template', {
 - **에러**: Rate Limit 초과 시 명확한 메시지 (`RateLimitTimeoutError`)
 
 ### 기술 문서
-- [Rate Limiting 설계](../01-planning/rate-limiting-design.md)
-- [Rate Limiting 구현 가이드](./rate-limiting-implementation.md)
+- [Rate Limiting 설계 및 구현](../01-planning/rate-limiting.md)
 - [테스트 코드](../../tests/utils/rate-limiter.test.ts)
 
 ---
@@ -616,7 +635,7 @@ const result2 = await mcpClient.call('get_programmers_problem', {
 ---
 
 **참고 문서**:
-- [아키텍처 문서](../01-planning/ARCHITECTURE.md)
-- [API 통합 가이드](./API.md)
+- [아키텍처 문서](./ARCHITECTURE.md)
+- [외부 API 통합 가이드](./EXTERNAL_API.md)
 - [E2E 테스트 가이드](../04-testing/e2e-manual-test-guide.md)
-- [현재 작업 상황](../03-project-management/tasks.md)
+- [현재 작업 상황](../03-project-management/TASKS.md)
