@@ -1,11 +1,11 @@
 /**
- * get_problem 도구 테스트
+ * get_problem_boj 도구 테스트
  */
 
 import { describe, it, expect } from 'vitest';
 import { getProblem, GetProblemInputSchema } from '../../../src/tools/boj/get-problem-boj.js';
 
-describe('get_problem 도구', () => {
+describe('get_problem_boj 도구', () => {
   describe('입력 스키마 검증', () => {
     it('유효한 problem_id를 통과시켜야 함', () => {
       const validInput = {

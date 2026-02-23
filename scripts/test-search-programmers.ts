@@ -1,11 +1,11 @@
 /**
- * search_programmers_problems 도구 통합 테스트
+ * search_problems_programmers 도구 통합 테스트
  */
 
 import { searchProgrammersProblemsTool } from '../src/tools/search-problems-programmers.js';
 
 async function testSearchProgrammersProblems() {
-  console.log('🧪 search_programmers_problems 도구 통합 테스트\n');
+  console.log('🧪 search_problems_programmers 도구 통합 테스트\n');
 
   const tool = searchProgrammersProblemsTool();
 
@@ -34,8 +34,8 @@ async function testSearchProgrammersProblems() {
 
   console.log('✅ 테스트 완료!');
   console.log('\n💡 MCP 서버에서 사용 가능합니다:');
-  console.log('   - search_programmers_problems({ levels: [1] })');
-  console.log('   - search_programmers_problems({ order: "accuracy", limit: 10 })');
+  console.log('   - search_problems_programmers({ levels: [1] })');
+  console.log('   - search_problems_programmers({ order: "accuracy", limit: 10 })');
 }
 
 testSearchProgrammersProblems().catch(console.error);

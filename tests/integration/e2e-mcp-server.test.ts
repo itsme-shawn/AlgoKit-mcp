@@ -131,17 +131,17 @@ describe('[S1] 서버 기본 동작', () => {
     const names = tools.map((t) => t.name);
 
     expect(names).toHaveLength(16);
-    expect(names).toContain('search_problems');
-    expect(names).toContain('get_problem');
-    expect(names).toContain('search_tags');
+    expect(names).toContain('search_problems_boj');
+    expect(names).toContain('get_problem_boj');
+    expect(names).toContain('search_tags_boj');
     expect(names).toContain('health_check');
     expect(names).toContain('analyze_problem_boj');
     expect(names).toContain('generate_hint_boj');
     expect(names).toContain('generate_review_template_boj');
     expect(names).toContain('fetch_problem_content_boj');
     expect(names).toContain('analyze_code_submission_boj');
-    expect(names).toContain('search_programmers_problems');
-    expect(names).toContain('get_programmers_problem');
+    expect(names).toContain('search_problems_programmers');
+    expect(names).toContain('get_problem_programmers');
   });
 
   it('health_check 가 정상 응답을 반환해야 함', async () => {
@@ -156,9 +156,9 @@ describe('[S1] 서버 기본 동작', () => {
 // 시나리오 2: BOJ 문제 검색
 // ─────────────────────────────────────────────
 
-describe('[S2] BOJ 문제 검색 (search_problems)', () => {
+describe('[S2] BOJ 문제 검색 (search_problems_boj)', () => {
   it('키워드 검색이 정상 동작해야 함', async () => {
-    const res = await client.callTool('search_problems', { query: 'A+B', page: 1 });
+    const res = await client.callTool('search_problems_boj', { query: 'A+B', page: 1 });
     expect(res.error).toBeUndefined();
     const text = (res.result as { content: Array<{ text: string }> }).content[0].text;
     expect(text).toContain('문제 검색 결과');
@@ -166,7 +166,7 @@ describe('[S2] BOJ 문제 검색 (search_problems)', () => {
   }, DEFAULT_TIMEOUT);
 
   it('숫자 level_min/level_max 필터가 동작해야 함', async () => {
-    const res = await client.callTool('search_problems', {
+    const res = await client.callTool('search_problems_boj', {
       level_min: 6,
       level_max: 10,
       page: 1,
@@ -177,7 +177,7 @@ describe('[S2] BOJ 문제 검색 (search_problems)', () => {
   }, DEFAULT_TIMEOUT);
 
   it('숫자 문자열 level("16") 필터가 오류 없이 동작해야 함 [버그픽스 검증]', async () => {
-    const res = await client.callTool('search_problems', {
+    const res = await client.callTool('search_problems_boj', {
       level_min: '16',
       level_max: '17',
       page: 1,
@@ -188,7 +188,7 @@ describe('[S2] BOJ 문제 검색 (search_problems)', () => {
   }, DEFAULT_TIMEOUT);
 
   it('티어 문자열("실버 3") level 필터가 동작해야 함', async () => {
-    const res = await client.callTool('search_problems', {
+    const res = await client.callTool('search_problems_boj', {
       level_min: '실버 3',
       level_max: '골드 1',
       page: 1,
@@ -199,7 +199,7 @@ describe('[S2] BOJ 문제 검색 (search_problems)', () => {
   }, DEFAULT_TIMEOUT);
 
   it('태그 필터(dp)가 동작해야 함', async () => {
-    const res = await client.callTool('search_problems', {
+    const res = await client.callTool('search_problems_boj', {
       tags: 'dp',
       level_min: 11,
       level_max: 15,
@@ -211,7 +211,7 @@ describe('[S2] BOJ 문제 검색 (search_problems)', () => {
   }, DEFAULT_TIMEOUT);
 
   it('존재하지 않는 키워드는 "검색 결과가 없습니다" 반환', async () => {
-    const res = await client.callTool('search_problems', {
+    const res = await client.callTool('search_problems_boj', {
       query: 'xyzabc123nonexistent_e2e',
     });
     expect(res.error).toBeUndefined();
@@ -224,9 +224,9 @@ describe('[S2] BOJ 문제 검색 (search_problems)', () => {
 // 시나리오 3: BOJ 문제 상세 조회
 // ─────────────────────────────────────────────
 
-describe('[S3] BOJ 문제 상세 조회 (get_problem)', () => {
+describe('[S3] BOJ 문제 상세 조회 (get_problem_boj)', () => {
   it('1000번(A+B) 문제를 정상 조회해야 함', async () => {
-    const res = await client.callTool('get_problem', { problem_id: 1000 });
+    const res = await client.callTool('get_problem_boj', { problem_id: 1000 });
     expect(res.error).toBeUndefined();
     const text = (res.result as { content: Array<{ text: string }> }).content[0].text;
     expect(text).toContain('1000');
@@ -234,7 +234,7 @@ describe('[S3] BOJ 문제 상세 조회 (get_problem)', () => {
   }, DEFAULT_TIMEOUT);
 
   it('존재하지 않는 문제 ID는 에러를 반환해야 함', async () => {
-    const res = await client.callTool('get_problem', { problem_id: 9999999 });
+    const res = await client.callTool('get_problem_boj', { problem_id: 9999999 });
     // 에러 응답이거나 content에 오류 메시지
     const text = (res.result as { content: Array<{ text: string }> } | undefined)?.content[0].text ?? '';
     const hasError = res.error !== undefined || text.includes('오류') || text.includes('찾을 수 없');
@@ -246,9 +246,9 @@ describe('[S3] BOJ 문제 상세 조회 (get_problem)', () => {
 // 시나리오 4: 태그 검색
 // ─────────────────────────────────────────────
 
-describe('[S4] 태그 검색 (search_tags)', () => {
+describe('[S4] 태그 검색 (search_tags_boj)', () => {
   it('"다이나믹" 키워드로 dp 태그를 찾아야 함', async () => {
-    const res = await client.callTool('search_tags', { query: '다이나믹' });
+    const res = await client.callTool('search_tags_boj', { query: '다이나믹' });
     expect(res.error).toBeUndefined();
     const text = (res.result as { content: Array<{ text: string }> }).content[0].text;
     expect(text).toMatch(/dp|다이나믹/i);
@@ -320,9 +320,9 @@ describe('[S8] BOJ 문제 본문 (fetch_problem_content_boj)', () => {
 // 시나리오 9: 프로그래머스 문제 검색
 // ─────────────────────────────────────────────
 
-describe('[S9] 프로그래머스 문제 검색 (search_programmers_problems)', () => {
+describe('[S9] 프로그래머스 문제 검색 (search_problems_programmers)', () => {
   it('레벨 1 문제 검색이 정상 동작해야 함', async () => {
-    const res = await client.callTool('search_programmers_problems', {
+    const res = await client.callTool('search_problems_programmers', {
       levels: [1],
       limit: 5,
     });
@@ -336,9 +336,9 @@ describe('[S9] 프로그래머스 문제 검색 (search_programmers_problems)', 
 // 시나리오 10: 프로그래머스 문제 상세
 // ─────────────────────────────────────────────
 
-describe('[S10] 프로그래머스 문제 상세 (get_programmers_problem)', () => {
+describe('[S10] 프로그래머스 문제 상세 (get_problem_programmers)', () => {
   it('42748번(K번째수) 문제를 정상 조회해야 함', async () => {
-    const res = await client.callTool('get_programmers_problem', { problem_id: '42748' });
+    const res = await client.callTool('get_problem_programmers', { problem_id: '42748' });
     expect(res.error).toBeUndefined();
     const text = (res.result as { content: Array<{ text: string }> }).content[0].text;
     expect(text).toMatch(/K번째수|42748|정렬/);

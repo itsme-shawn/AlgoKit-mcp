@@ -144,25 +144,28 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       // 기존 BOJ 도구 (이름 유지)
       {
-        name: 'search_problems',
+        name: 'search_problems_boj',
         description:
           'BOJ 문제를 검색합니다. 키워드, 난이도 레벨, 알고리즘 태그로 필터링할 수 있습니다. ' +
           '⚠️ **중요**: 결과는 마크다운 테이블로 반환되며, 각 문제번호는 https://www.acmicpc.net/problem/{ID} 형태의 마크다운 링크로 제공됩니다. ' +
           '사용자에게 보여줄 때는 이 링크들을 반드시 유지해야 합니다. ' +
-          '예: Gold 티어의 DP 문제 검색, Silver 이하 그리디 문제 검색 등',
+          '예: Gold 티어의 DP 문제 검색, Silver 이하 그리디 문제 검색 등\n\n' +
+          '⚠️ 플랫폼 미지정 시 사용자에게 어느 플랫폼에서 검색할지 확인하세요.',
         inputSchema: zodToJsonSchema(SearchProblemsInputSchema as any) as any,
       },
       {
-        name: 'get_problem',
+        name: 'get_problem_boj',
         description:
-          '특정 BOJ 문제의 상세 정보를 조회합니다. 문제 번호로 난이도, 태그, 통계 등을 확인할 수 있습니다.',
+          '특정 BOJ 문제의 상세 정보를 조회합니다. 문제 번호로 난이도, 태그, 통계 등을 확인할 수 있습니다.\n\n' +
+          '⚠️ 플랫폼 판별: 문제 번호만 입력된 경우 대화 맥락에서 플랫폼을 파악하거나, 맥락이 없으면 반드시 BOJ/프로그래머스 중 어느 플랫폼인지 사용자에게 확인 후 호출하세요.',
         inputSchema: zodToJsonSchema(GetProblemInputSchema as any) as any,
       },
       {
-        name: 'search_tags',
+        name: 'search_tags_boj',
         description:
           '알고리즘 태그를 검색합니다. 한글 또는 영문 키워드로 관련 태그를 찾을 수 있습니다. ' +
-          '예: "다이나믹", "그래프", "이분 탐색" 등',
+          '예: "다이나믹", "그래프", "이분 탐색" 등\n\n' +
+          '⚠️ 플랫폼 미지정 시 사용자에게 어느 플랫폼에서 검색할지 확인하세요.',
         inputSchema: zodToJsonSchema(SearchTagsInputSchema as any) as any,
       },
 
@@ -195,12 +198,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
       // Programmers 기존 도구
       {
-        name: 'search_programmers_problems',
+        name: 'search_problems_programmers',
         description: searchProgrammersProblemsToolObj.description,
         inputSchema: zodToJsonSchema(SearchProgrammersProblemsInputSchema as any) as any,
       },
       {
-        name: 'get_programmers_problem',
+        name: 'get_problem_programmers',
         description: getProgrammersProblemToolObj.description,
         inputSchema: zodToJsonSchema(GetProgrammersProblemInputSchema as any) as any,
       },
@@ -477,7 +480,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     switch (name) {
       // 기존 BOJ 도구 (이름 유지)
-      case 'search_problems': {
+      case 'search_problems_boj': {
         const input = SearchProblemsInputSchema.parse(args);
         const result = await searchProblems(input);
         return {
@@ -490,7 +493,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
-      case 'get_problem': {
+      case 'get_problem_boj': {
         const input = GetProblemInputSchema.parse(args);
         const result = await getProblem(input);
         return {
@@ -503,7 +506,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
-      case 'search_tags': {
+      case 'search_tags_boj': {
         const input = SearchTagsInputSchema.parse(args);
         const result = await searchTags(input);
         return {
@@ -558,7 +561,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       // Programmers 기존 도구
-      case 'search_programmers_problems': {
+      case 'search_problems_programmers': {
         const input = SearchProgrammersProblemsInputSchema.parse(args);
         const result = await searchProgrammersProblemsToolObj.handler(input);
         return {
@@ -566,7 +569,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
-      case 'get_programmers_problem': {
+      case 'get_problem_programmers': {
         const input = GetProgrammersProblemInputSchema.parse(args);
         const result = await getProgrammersProblemToolObj.handler(input);
         return {
@@ -628,16 +631,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                   server: 'AlgoKit',
                   version: '1.0.0',
                   tools: [
-                    'search_problems',
-                    'get_problem',
-                    'search_tags',
+                    'search_problems_boj',
+                    'get_problem_boj',
+                    'search_tags_boj',
                     'analyze_problem_boj',
                     'generate_hint_boj',
                     'generate_review_template_boj',
                     'fetch_problem_content_boj',
                     'analyze_code_submission_boj',
-                    'search_programmers_problems',
-                    'get_programmers_problem',
+                    'search_problems_programmers',
+                    'get_problem_programmers',
                     'analyze_problem_programmers',
                     'generate_hint_programmers',
                     'generate_review_template_programmers',

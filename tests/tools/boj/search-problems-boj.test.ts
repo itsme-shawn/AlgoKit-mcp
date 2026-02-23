@@ -1,11 +1,11 @@
 /**
- * search_problems 도구 테스트
+ * search_problems_boj 도구 테스트
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { searchProblems, SearchProblemsInputSchema } from '../../../src/tools/boj/search-problems-boj.js';
 
-describe('search_problems 도구', () => {
+describe('search_problems_boj 도구', () => {
   describe('입력 스키마 검증', () => {
     describe('숫자 형식 레벨 입력', () => {
       it('유효한 입력을 통과시켜야 함', () => {

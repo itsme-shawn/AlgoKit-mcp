@@ -1,11 +1,11 @@
 /**
- * search_tags 도구 테스트
+ * search_tags_boj 도구 테스트
  */
 
 import { describe, it, expect } from 'vitest';
 import { searchTags, SearchTagsInputSchema } from '../../../src/tools/boj/search-tags-boj.js';
 
-describe('search_tags 도구', () => {
+describe('search_tags_boj 도구', () => {
   describe('입력 스키마 검증', () => {
     it('유효한 query를 통과시켜야 함', () => {
       const validInput = {

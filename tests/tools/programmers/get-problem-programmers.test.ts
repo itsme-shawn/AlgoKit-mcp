@@ -1,5 +1,5 @@
 /**
- * get_programmers_problem MCP 도구 단위 테스트
+ * get_problem_programmers MCP 도구 단위 테스트
  */
 import { describe, it, expect } from 'vitest';
 import { handleGetProgrammersProblem as getProgrammersProblem } from '../../../src/tools/programmers/get-problem-programmers.js';

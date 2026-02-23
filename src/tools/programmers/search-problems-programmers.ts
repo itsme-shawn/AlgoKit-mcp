@@ -1,5 +1,5 @@
 /**
- * search_programmers_problems MCP 도구
+ * search_problems_programmers MCP 도구
  *
  * Phase 7 - Task 7.5: 프로그래머스 문제 검색 MCP 도구
  */
@@ -151,7 +151,7 @@ function formatProblemsAsMarkdown(
   lines.push('---');
   lines.push('');
   lines.push('💡 **다음 단계**:');
-  lines.push('- 문제를 선택하여 상세 정보 조회: `get_programmers_problem`');
+  lines.push('- 문제를 선택하여 상세 정보 조회: `get_problem_programmers`');
   lines.push('- 문제 분석 및 힌트 생성: `analyze_programmers_problem` (구현 예정)');
   lines.push('');
   lines.push('⚠️ **참고**:');
@@ -182,7 +182,7 @@ function formatLevel(level: number): string {
  */
 export function searchProgrammersProblemsTool() {
   return {
-    name: 'search_programmers_problems',
+    name: 'search_problems_programmers',
     description: `프로그래머스 문제를 검색합니다. 난이도, 정렬 방식, 키워드로 필터링할 수 있습니다.
 
 **사용 예시**:
@@ -202,7 +202,9 @@ export function searchProgrammersProblemsTool() {
 - 마크다운 테이블 (번호, 제목, 레벨, 카테고리, 완료자, 정답률)
 - 문제 제목은 프로그래머스 링크로 제공
 
-⚠️ **중요**: 프로그래머스는 JavaScript 렌더링이 필요하여 BOJ보다 느립니다 (3-5초).`,
+⚠️ **중요**: 프로그래머스는 JavaScript 렌더링이 필요하여 BOJ보다 느립니다 (3-5초).
+
+⚠️ 플랫폼 미지정 시 사용자에게 어느 플랫폼에서 검색할지 확인하세요.`,
     inputSchema: SearchProgrammersProblemsInputSchema,
     handler: searchProgrammersProblems,
   };

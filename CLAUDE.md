@@ -17,9 +17,9 @@
 ### 1. BOJ 도구 ✅
 
 #### 기본 조회
-- **search_problems**: 필터 기반 BOJ 문제 검색
-- **get_problem**: BOJ 문제 상세 정보 조회
-- **search_tags**: 알고리즘 태그 검색
+- **search_problems_boj**: 필터 기반 BOJ 문제 검색
+- **get_problem_boj**: BOJ 문제 상세 정보 조회
+- **search_tags_boj**: 알고리즘 태그 검색
 
 #### 학습 지원 (Phase 5 완료)
 - **analyze_problem_boj**: BOJ 문제 분석 및 힌트 가이드 프롬프트 제공
@@ -41,8 +41,8 @@
 ### 2. 프로그래머스 도구
 
 #### 기본 조회 (Phase 7 완료) ✅
-- **search_programmers_problems**: 프로그래머스 문제 검색 (내부 JSON API, < 1초)
-- **get_programmers_problem**: 프로그래머스 문제 상세 조회 (cheerio, 1-2초)
+- **search_problems_programmers**: 프로그래머스 문제 검색 (내부 JSON API, < 1초)
+- **get_problem_programmers**: 프로그래머스 문제 상세 조회 (cheerio, 1-2초)
 
 #### 학습 지원 (Phase 7+ 구현 예정) 🚧
 - **analyze_problem_programmers**: 프로그래머스 문제 분석 (스텁)

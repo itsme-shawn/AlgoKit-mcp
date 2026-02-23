@@ -1,5 +1,5 @@
 /**
- * get_programmers_problem MCP 도구
+ * get_problem_programmers MCP 도구
  *
  * Phase 7 - Task 7.5: 프로그래머스 문제 상세 조회 MCP 도구 구현
  */
@@ -28,7 +28,7 @@ interface TextContent {
 }
 
 /**
- * get_programmers_problem 도구 핸들러
+ * get_problem_programmers 도구 핸들러
  *
  * @param args - 입력 인자 (problem_id)
  * @returns ProgrammersProblemDetail 마크다운 문자열
@@ -166,7 +166,7 @@ export const getProgrammersProblem = handleGetProgrammersProblem;
  */
 export function getProgrammersProblemTool() {
   return {
-    name: 'get_programmers_problem',
+    name: 'get_problem_programmers',
     description: `프로그래머스 문제 상세 정보 조회 (웹 스크래핑).
 
 프로그래머스 페이지에서 문제 제목, 설명, 제한사항, 입출력 예제를 가져옵니다.
@@ -186,7 +186,9 @@ export function getProgrammersProblemTool() {
 
 **참고**:
 - BOJ와 다르게 프로그래머스는 fetch + cheerio 사용 (SSR 페이지)
-- 프로그래머스는 태그 정보가 없으므로 tags 필드는 빈 배열`,
+- 프로그래머스는 태그 정보가 없으므로 tags 필드는 빈 배열
+
+⚠️ 플랫폼 판별: 문제 번호만 입력된 경우 대화 맥락에서 플랫폼을 파악하거나, 맥락이 없으면 반드시 BOJ/프로그래머스 중 어느 플랫폼인지 사용자에게 확인 후 호출하세요.`,
     inputSchema: GetProgrammersProblemInputSchema,
     handler: handleGetProgrammersProblem,
   };
