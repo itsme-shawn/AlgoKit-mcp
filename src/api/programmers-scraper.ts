@@ -76,7 +76,7 @@ export class ProgrammersScraper {
     // 캐시 확인
     const cached = this.searchCache.get(cacheKey);
     if (cached !== undefined) {
-      console.log('[ProgrammersScraper] 캐시 히트: 검색 결과');
+      process.stderr.write('[ProgrammersScraper] 캐시 히트: 검색 결과\n');
       // limit 적용 후 반환
       return limit && limit > 0 ? cached.slice(0, limit) : cached;
     }
@@ -101,7 +101,7 @@ export class ProgrammersScraper {
 
       const apiUrl = `${this.baseUrl}/api/v2/school/challenges/?${params.toString()}`;
 
-      console.log(`[ProgrammersScraper] API URL: ${apiUrl}`);
+      process.stderr.write(`[ProgrammersScraper] API URL: ${apiUrl}\n`);
 
       // 2. API 호출
       const controller = new AbortController();
@@ -190,7 +190,7 @@ export class ProgrammersScraper {
         problems = problems.slice(0, limit);
       }
 
-      console.log(`[ProgrammersScraper] ${problems.length}개 문제 검색 완료`);
+      process.stderr.write(`[ProgrammersScraper] ${problems.length}개 문제 검색 완료\n`);
 
       return problems;
     } catch (error) {
@@ -369,7 +369,7 @@ export class ProgrammersScraper {
     // 캐시 확인
     const cached = this.problemCache.get(problemId);
     if (cached !== undefined) {
-      console.log(`[ProgrammersScraper] 캐시 히트: 문제 ${problemId}`);
+      process.stderr.write(`[ProgrammersScraper] 캐시 히트: 문제 ${problemId}\n`);
       return cached;
     }
 

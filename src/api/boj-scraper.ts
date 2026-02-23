@@ -92,7 +92,7 @@ export class BOJScraper {
     // 캐시 확인
     const cached = this.cache.get(problemId);
     if (cached !== undefined) {
-      console.log(`[BOJScraper] 캐시 히트: 문제 ${problemId}`);
+      process.stderr.write(`[BOJScraper] 캐시 히트: 문제 ${problemId}\n`);
       return cached;
     }
 
